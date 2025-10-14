@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>刷讚與帳號信息工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 30px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .tab-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 15px;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 15px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .tab.active {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            transform: translateY(-2px);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .panel {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            border: 2px solid #8A2BE2;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            background: rgba(255,255,255,0.95);
+            color: #333;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin: 20px 0;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            color: white;
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #FF9800, #f57c00);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #f44336, #da190b);
+            color: white;
+        }
+        
+        .btn-info {
+            background: linear-gradient(135deg, #9C27B0, #7b1fa2);
+            color: white;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .stat-card {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #FFD700;
+            margin: 10px 0;
+        }
+        
+        .info-section {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+        
+        .info-section h3 {
+            color: #FFD700;
+            margin-bottom: 15px;
+            border-bottom: 2px solid rgba(255,255,255,0.2);
+            padding-bottom: 8px;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .info-label {
+            font-weight: bold;
+            opacity: 0.8;
+        }
+        
+        .info-value {
+            color: #FFD700;
+            font-weight: bold;
+        }
+        
+        .log-panel {
+            background: rgba(0,0,0,0.3);
+            padding: 20px;
+            border-radius: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 20px 0;
+        }
+        
+        .log-entry {
+            margin-bottom: 8px;
+            padding: 8px 12px;
+            border-left: 4px solid #4CAF50;
+            background: rgba(255,255,255,0.05);
+            border-radius: 4px;
+        }
+        
+        .log-entry.error {
+            border-left-color: #f44336;
+            color: #ff6b6b;
+        }
+        
+        .log-entry.warning {
+            border-left-color: #FF9800;
+            color: #ffa726;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .three-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+        }
+        
+        @media (max-width: 768px) {
+            .two-column, .three-column {
+                grid-template-columns: 1fr;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎮 多功能遊戲工具</h1>
+            <p>刷讚系統 + 帳號信息查詢 | 跨域問題已修復</p>
+        </div>
+        
+        <div class="tab-container">
+            <button class="tab active" data-tab="like">🚀 刷讚系統</button>
+            <button class="tab" data-tab="info">📊 帳號信息</button>
+            <button class="tab" data-tab="status">🔍 狀態檢查</button>
+        </div>
+        
+        <!-- 刷讚系統 -->
+        <div class="tab-content active" id="like-tab">
+            <div class="panel">
+                <h2>🚀 自動刷讚系統</h2>
+                <div class="input-group">
+                    <label for="like-uid">遊戲 UID:</label>
+                    <input type="text" id="like-uid" value="" placeholder="輸入要刷讚的UID">
+                </div>
+                
+                <div class="three-column">
+                    <div class="input-group">
+                        <label for="like-delay">請求間隔 (毫秒):</label>
+                        <input type="number" id="like-delay" value="5000" min="2000" max="30000">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="like-count">刷讚次數:</label>
+                        <input type="number" id="like-count" value="10" min="1" max="50">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="like-per-request">每次讚數:</label>
+                        <input type="number" id="like-per-request" value="1" min="1" max="100">
+                    </div>
+                </div>
+                
+                <div class="button-group">
+                    <button class="btn btn-primary" id="start-like">
+                        <span id="like-text">🚀 開始刷讚</span>
+                        <span id="like-loading" class="loading" style="display: none;"></span>
+                    </button>
+                    <button class="btn btn-danger" id="stop-like" disabled>⏹️ 停止刷讚</button>
+                    <button class="btn btn-secondary" id="test-like">🔍 測試連接</button>
+                    <button class="btn btn-info" id="reset-stats">🔄 重置統計</button>
+                </div>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div>成功次數</div>
+                    <div class="stat-value" id="success-count">0</div>
+                    <div>次</div>
+                </div>
+                <div class="stat-card">
+                    <div>總讚數</div>
+                    <div class="stat-value" id="total-likes">0</div>
+                    <div>個讚</div>
+                </div>
+                <div class="stat-card">
+                    <div>當前狀態</div>
+                    <div class="stat-value" id="current-status">待機</div>
+                    <div id="status-desc">準備就緒</div>
+                </div>
+            </div>
+            
+            <div class="log-panel">
+                <h3>📝 刷讚日誌</h3>
+                <div id="like-log">
+                    <div class="log-entry">刷讚系統就緒，請設定參數後開始...</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 帳號信息 -->
+        <div class="tab-content" id="info-tab">
+            <div class="panel">
+                <h2>📊 帳號信息查詢</h2>
+                <div class="input-group">
+                    <label for="info-uid">遊戲 UID:</label>
+                    <input type="text" id="info-uid" value="" placeholder="輸入要查詢的UID">
+                </div>
+                
+                <div class="button-group">
+                    <button class="btn btn-primary" id="get-info">
+                        <span id="info-text">🔍 查詢信息</span>
+                        <span id="info-loading" class="loading" style="display: none;"></span>
+                    </button>
+                    <button class="btn btn-secondary" id="copy-info">📋 複製信息</button>
+                </div>
+            </div>
+            
+            <div id="account-info">
+                <div style="text-align: center; padding: 40px; opacity: 0.7;">
+                    <div style="font-size: 3em; margin-bottom: 10px;">❓</div>
+                    <div>請輸入 UID 並點擊查詢信息</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 狀態檢查 -->
+        <div class="tab-content" id="status-tab">
+            <div class="panel">
+                <h2>🔍 帳號狀態檢查</h2>
+                <div class="input-group">
+                    <label for="status-uid">遊戲 UID:</label>
+                    <input type="text" id="status-uid" value="" placeholder="輸入要檢查的UID">
+                </div>
+                
+                <div class="button-group">
+                    <button class="btn btn-primary" id="check-status">
+                        <span id="status-text">🔍 檢查狀態</span>
+                        <span id="status-loading" class="loading" style="display: none;"></span>
+                    </button>
+                    <button class="btn btn-warning" id="auto-check">🔄 自動監控</button>
+                </div>
+            </div>
+            
+            <div id="status-result">
+                <div style="text-align: center; padding: 40px; opacity: 0.7;">
+                    <div style="font-size: 3em; margin-bottom: 10px;">🛡️</div>
+                    <div>檢查帳號狀態和禁止信息</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class AlliFFTool {
+            constructor() {
+                this.config = {
+                    likeStats: {
+                        success: 0,
+                        totalLikes: 0,
+                        isRunning: false
+                    },
+                    autoCheck: false
+                };
+                
+                this.init();
+            }
+            
+            init() {
+                this.bindEvents();
+                this.loadStats();
+            }
+            
+            bindEvents() {
+                // 標籤切換
+                document.querySelectorAll('.tab').forEach(tab => {
+                    tab.addEventListener('click', (e) => {
+                        const tabName = e.target.getAttribute('data-tab');
+                        this.switchTab(tabName);
+                    });
+                });
+                
+                // 刷讚功能
+                document.getElementById('start-like').addEventListener('click', () => this.startLiking());
+                document.getElementById('stop-like').addEventListener('click', () => this.stopLiking());
+                document.getElementById('test-like').addEventListener('click', () => this.testLikeConnection());
+                document.getElementById('reset-stats').addEventListener('click', () => this.resetStats());
+                
+                // 信息查詢
+                document.getElementById('get-info').addEventListener('click', () => this.getAccountInfo());
+                document.getElementById('copy-info').addEventListener('click', () => this.copyAccountInfo());
+                
+                // 狀態檢查
+                document.getElementById('check-status').addEventListener('click', () => this.checkAccountStatus());
+                document.getElementById('auto-check').addEventListener('click', () => this.toggleAutoCheck());
+            }
+            
+            switchTab(tabName) {
+                // 隱藏所有標籤內容
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                
+                // 移除所有標籤激活狀態
+                document.querySelectorAll('.tab').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                
+                // 顯示選中的標籤
+                document.getElementById(`${tabName}-tab`).classList.add('active');
+                document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+            }
+            
+            // 刷讚功能
+            async startLiking() {
+                if (this.config.likeStats.isRunning) return;
+                
+                const uid = document.getElementById('like-uid').value;
+                const delay = parseInt(document.getElementById('like-delay').value);
+                const count = parseInt(document.getElementById('like-count').value);
+                const likesPerRequest = parseInt(document.getElementById('like-per-request').value);
+                
+                if (!uid) {
+                    this.addLikeLog('❌ 請輸入有效的 UID', 'error');
+                    return;
+                }
+                
+                this.config.likeStats.isRunning = true;
+                document.getElementById('start-like').disabled = true;
+                document.getElementById('stop-like').disabled = false;
+                this.showLikeLoading(true);
+                
+                this.addLikeLog(`🚀 開始自動刷讚 (每次 ${likesPerRequest} 讚)...`, 'success');
+                
+                for (let i = 0; i < count && this.config.likeStats.isRunning; i++) {
+                    const result = await this.makeLikeRequest(uid);
+                    
+                    if (result.success) {
+                        this.config.likeStats.success++;
+                        this.config.likeStats.totalLikes += result.likesAdded;
+                        this.updateLikeStats();
+                        this.addLikeLog(`✅ 第 ${i+1} 次成功: +${result.likesAdded} 讚`, 'success');
+                    } else {
+                        this.addLikeLog(`❌ 第 ${i+1} 次失敗: ${result.message}`, 'error');
+                        if (result.shouldStop) break;
+                    }
+                    
+                    if (i < count - 1 && this.config.likeStats.isRunning) {
+                        await this.delay(delay);
+                    }
+                }
+                
+                if (this.config.likeStats.isRunning) {
+                    this.addLikeLog(`🎉 刷讚完成！總共增加 ${this.config.likeStats.totalLikes} 個讚`, 'success');
+                }
+                
+                this.stopLiking();
+                this.saveStats();
+            }
+            
+            stopLiking() {
+                this.config.likeStats.isRunning = false;
+                document.getElementById('start-like').disabled = false;
+                document.getElementById('stop-like').disabled = true;
+                this.showLikeLoading(false);
+                this.addLikeLog('⏹️ 刷讚已停止', 'warning');
+            }
+            
+            resetStats() {
+                this.config.likeStats.success = 0;
+                this.config.likeStats.totalLikes = 0;
+                this.updateLikeStats();
+                this.saveStats();
+                this.addLikeLog('🔄 統計數據已重置', 'info');
+            }
+            
+            async makeLikeRequest(uid) {
+                try {
+                    // 使用 CORS 代理解決跨域問題
+                    const proxyUrl = 'https://api.allorigins.win/raw?url=';
+                    const targetUrl = `https://ag-team-like-api.vercel.app/like?uid=${uid}`;
+                    
+                    const response = await fetch(proxyUrl + encodeURIComponent(targetUrl));
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    
+                    if (data.status === 1 || data.LikesGivenByAPI > 0) {
+                        return {
+                            success: true,
+                            likesAdded: data.LikesGivenByAPI || 1,
+                            message: '刷讚成功'
+                        };
+                    } else {
+                        return {
+                            success: false,
+                            likesAdded: 0,
+                            message: this.getLikeStatusMessage(data.status),
+                            shouldStop: data.status === 2
+                        };
+                    }
+                } catch (error) {
+                    return {
+                        success: false,
+                        likesAdded: 0,
+                        message: `網路錯誤: ${error.message}`,
+                        shouldStop: false
+                    };
+                }
+            }
+            
+            async testLikeConnection() {
+                const uid = document.getElementById('like-uid').value;
+                if (!uid) {
+                    this.addLikeLog('❌ 請輸入 UID', 'error');
+                    return;
+                }
+                
+                this.addLikeLog('🔍 測試連接中...', 'info');
+                const result = await this.makeLikeRequest(uid);
+                
+                if (result.success) {
+                    this.addLikeLog(`✅ 連接成功！可獲得 ${result.likesAdded} 個讚`, 'success');
+                } else {
+                    this.addLikeLog(`❌ 連接失敗: ${result.message}`, 'error');
+                }
+            }
+            
+            // 帳號信息功能
+            async getAccountInfo() {
+                const uid = document.getElementById('info-uid').value;
+                if (!uid) {
+                    alert('請輸入 UID');
+                    return;
+                }
+                
+                this.showInfoLoading(true);
+                
+                try {
+                    // 使用 CORS 代理
+                    const proxyUrl = 'https://api.allorigins.win/raw?url=';
+                    const targetUrl = `http://217.154.239.23:13984/info=${uid}`;
+                    
+                    const response = await fetch(proxyUrl + encodeURIComponent(targetUrl));
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    
+                    this.displayAccountInfo(data);
+                    this.addLikeLog(`✅ 已獲取 UID ${uid} 的帳號信息`, 'success');
+                    
+                } catch (error) {
+                    this.displayAccountInfo(null, error.message);
+                    this.addLikeLog(`❌ 獲取信息失敗: ${error.message}`, 'error');
+                } finally {
+                    this.showInfoLoading(false);
+                }
+            }
+            
+            displayAccountInfo(data, error = null) {
+                const container = document.getElementById('account-info');
+                
+                if (error) {
+                    container.innerHTML = `
+                        <div class="info-section">
+                            <h3>❌ 錯誤信息</h3>
+                            <div class="info-row">
+                                <div class="info-label">錯誤:</div>
+                                <div class="info-value">${error}</div>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                if (!data) return;
+                
+                // 地區翻譯
+                const regionMap = {
+                    'TW': '台灣',
+                    'SG': '新加坡',
+                    'HK': '香港',
+                    'US': '美國',
+                    'EU': '歐洲',
+                    'ME': '中東',
+                    'KR': '韓國',
+                    'JP': '日本',
+                    'CN': '中國'
+                };
+                
+                const region = regionMap[data.basicInfo?.region] || data.basicInfo?.region || '未知';
+                
+                let html = `
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div>當前讚數</div>
+                            <div class="stat-value">${data.basicInfo?.liked || 0}</div>
+                            <div>個讚</div>
+                        </div>
+                        <div class="stat-card">
+                            <div>等級</div>
+                            <div class="stat-value">${data.basicInfo?.level || 0}</div>
+                            <div>級</div>
+                        </div>
+                        <div class="stat-card">
+                            <div>鑽石花費</div>
+                            <div class="stat-value">${data.diamondCostRes?.diamondCost || 0}</div>
+                            <div>鑽石</div>
+                        </div>
+                    </div>
+                    
+                    <div class="info-section">
+                        <h3>👤 基本資訊</h3>
+                        <div class="info-row">
+                            <div class="info-label">遊戲名稱:</div>
+                            <div class="info-value">${data.basicInfo?.nickname || '未知'}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">地區:</div>
+                            <div class="info-value">${region}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">經驗值:</div>
+                            <div class="info-value">${data.basicInfo?.exp || 0}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">帳號創建時間:</div>
+                            <div class="info-value">${this.formatTimestamp(data.basicInfo?.createAt)}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">最後登入:</div>
+                            <div class="info-value">${this.formatTimestamp(data.basicInfo?.lastLoginAt)}</div>
+                        </div>
+                    </div>
+                `;
+                
+                if (data.clanBasicInfo) {
+                    html += `
+                        <div class="info-section">
+                            <h3>👥 戰隊資訊</h3>
+                            <div class="info-row">
+                                <div class="info-label">戰隊名稱:</div>
+                                <div class="info-value">${data.clanBasicInfo.clanName}</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">戰隊等級:</div>
+                                <div class="info-value">${data.clanBasicInfo.clanLevel}</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">成員數量:</div>
+                                <div class="info-value">${data.clanBasicInfo.memberNum}/${data.clanBasicInfo.capacity}</div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                if (data.socialInfo) {
+                    html += `
+                        <div class="info-section">
+                            <h3>💬 社交資訊</h3>
+                            <div class="info-row">
+                                <div class="info-label">個性簽名:</div>
+                                <div class="info-value">${data.socialInfo.signature || '無'}</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">語言:</div>
+                                <div class="info-value">${data.socialInfo.language || '未知'}</div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                container.innerHTML = html;
+            }
+            
+            copyAccountInfo() {
+                const container = document.getElementById('account-info');
+                const text = container.innerText;
+                navigator.clipboard.writeText(text).then(() => {
+                    this.addLikeLog('📋 帳號信息已複製到剪貼板', 'success');
+                });
+            }
+            
+            // 狀態檢查功能
+            async checkAccountStatus() {
+                const uid = document.getElementById('status-uid').value;
+                if (!uid) {
+                    alert('請輸入 UID');
+                    return;
+                }
+                
+                this.showStatusLoading(true);
+                
+                try {
+                    // 使用 CORS 代理
+                    const proxyUrl = 'https://api.allorigins.win/raw?url=';
+                    const targetUrl = `http://87.106.82.84:13522/check?uid=${uid}`;
+                    
+                    const response = await fetch(proxyUrl + encodeURIComponent(targetUrl));
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    
+                    this.displayStatusResult(data);
+                    this.addLikeLog(`✅ 已檢查 UID ${uid} 的狀態`, 'success');
+                    
+                } catch (error) {
+                    this.displayStatusResult(null, error.message);
+                    this.addLikeLog(`❌ 狀態檢查失敗: ${error.message}`, 'error');
+                } finally {
+                    this.showStatusLoading(false);
+                }
+            }
+            
+            displayStatusResult(data, error = null) {
+                const container = document.getElementById('status-result');
+                
+                if (error) {
+                    container.innerHTML = `
+                        <div class="info-section">
+                            <h3>❌ 檢查錯誤</h3>
+                            <div>${error}</div>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                let statusColor = '#4CAF50';
+                let statusText = '正常';
+                let statusEmoji = '✅';
+                
+                if (data.is_banned && data.is_banned.includes('❌')) {
+                    statusColor = '#f44336';
+                    statusText = '已禁止';
+                    statusEmoji = '🚫';
+                }
+                
+                container.innerHTML = `
+                    <div class="info-section">
+                        <h3>${statusEmoji} 帳號狀態</h3>
+                        <div class="info-row">
+                            <div class="info-label">狀態:</div>
+                            <div class="info-value" style="color: ${statusColor}">${statusText}</div>
+                        </div>
+                        ${data.ban_period ? `
+                        <div class="info-row">
+                            <div class="info-label">禁止期間:</div>
+                            <div class="info-value">${data.ban_period} 小時</div>
+                        </div>
+                        ` : ''}
+                        <div class="info-row">
+                            <div class="info-label">遊戲名稱:</div>
+                            <div class="info-value">${data.name || '未知'}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">地區:</div>
+                            <div class="info-value">${data.region || '未知'}</div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            toggleAutoCheck() {
+                this.config.autoCheck = !this.config.autoCheck;
+                const btn = document.getElementById('auto-check');
+                
+                if (this.config.autoCheck) {
+                    btn.textContent = '⏹️ 停止監控';
+                    this.addLikeLog('🔄 開始自動狀態監控 (每30秒)', 'info');
+                    this.startAutoCheck();
+                } else {
+                    btn.textContent = '🔄 自動監控';
+                    this.addLikeLog('⏹️ 停止自動監控', 'warning');
+                }
+            }
+            
+            startAutoCheck() {
+                if (!this.config.autoCheck) return;
+                
+                this.checkAccountStatus();
+                setTimeout(() => this.startAutoCheck(), 30000);
+            }
+            
+            // 工具函數
+            addLikeLog(message, type = 'info') {
+                const logElement = document.getElementById('like-log');
+                const timestamp = new Date().toLocaleTimeString();
+                const logEntry = document.createElement('div');
+                
+                logEntry.className = `log-entry ${type}`;
+                logEntry.textContent = `[${timestamp}] ${message}`;
+                
+                logElement.appendChild(logEntry);
+                logElement.scrollTop = logElement.scrollHeight;
+                
+                if (logElement.children.length > 50) {
+                    logElement.removeChild(logElement.firstChild);
+                }
+            }
+            
+            updateLikeStats() {
+                document.getElementById('success-count').textContent = this.config.likeStats.success;
+                document.getElementById('total-likes').textContent = this.config.likeStats.totalLikes;
+                document.getElementById('current-status').textContent = this.config.likeStats.isRunning ? '運行中' : '待機';
+                document.getElementById('status-desc').textContent = this.config.likeStats.isRunning ? '刷讚進行中' : '準備就緒';
+            }
+            
+            showLikeLoading(show) {
+                const text = document.getElementById('like-text');
+                const loading = document.getElementById('like-loading');
+                
+                if (show) {
+                    text.textContent = '刷讚中';
+                    loading.style.display = 'inline-block';
+                } else {
+                    text.textContent = '🚀 開始刷讚';
+                    loading.style.display = 'none';
+                }
+            }
+            
+            showInfoLoading(show) {
+                const text = document.getElementById('info-text');
+                const loading = document.getElementById('info-loading');
+                
+                if (show) {
+                    text.textContent = '查詢中';
+                    loading.style.display = 'inline-block';
+                    document.getElementById('get-info').disabled = true;
+                } else {
+                    text.textContent = '🔍 查詢信息';
+                    loading.style.display = 'none';
+                    document.getElementById('get-info').disabled = false;
+                }
+            }
+            
+            showStatusLoading(show) {
+                const text = document.getElementById('status-text');
+                const loading = document.getElementById('status-loading');
+                
+                if (show) {
+                    text.textContent = '檢查中';
+                    loading.style.display = 'inline-block';
+                    document.getElementById('check-status').disabled = true;
+                } else {
+                    text.textContent = '🔍 檢查狀態';
+                    loading.style.display = 'none';
+                    document.getElementById('check-status').disabled = false;
+                }
+            }
+            
+            getLikeStatusMessage(status) {
+                const messages = {
+                    1: '成功',
+                    2: '額度用盡',
+                    3: 'UID 錯誤',
+                    4: 'Token 無效',
+                    5: '請求過於頻繁'
+                };
+                return messages[status] || `未知狀態: ${status}`;
+            }
+            
+            formatTimestamp(timestamp) {
+                if (!timestamp) return '未知';
+                return new Date(parseInt(timestamp) * 1000).toLocaleString('zh-TW');
+            }
+            
+            delay(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+            
+            saveStats() {
+                localStorage.setItem('alliffStats', JSON.stringify(this.config.likeStats));
+            }
+            
+            loadStats() {
+                try {
+                    const saved = localStorage.getItem('alliffStats');
+                    if (saved) {
+                        this.config.likeStats = { ...this.config.likeStats, ...JSON.parse(saved) };
+                        this.updateLikeStats();
+                    }
+                } catch (e) {
+                    console.log('無法載入統計數據');
+                }
+            }
+        }
+
+        // 初始化工具
+        document.addEventListener('DOMContentLoaded', () => {
+            window.alliffTool = new AlliFFTool();
+        });
+    </script>
+</body>
+</html>
