@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>高速JWT刷讚工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .panel {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            border: 2px solid #8A2BE2;
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            background: rgba(255,255,255,0.95);
+            color: #333;
+        }
+        
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .btn {
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            color: white;
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #FF9800, #f57c00);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #f44336, #da190b);
+            color: white;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .stat-card {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #FFD700;
+            margin: 5px 0;
+        }
+        
+        .api-status {
+            background: rgba(255,255,255,0.1);
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            text-align: center;
+        }
+        
+        .log-panel {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 15px 0;
+        }
+        
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 8px 12px;
+            border-left: 4px solid #4CAF50;
+            background: rgba(255,255,255,0.05);
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .log-entry.error {
+            border-left-color: #f44336;
+            color: #ff6b6b;
+        }
+        
+        .log-entry.warning {
+            border-left-color: #FF9800;
+            color: #ffa726;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        @media (max-width: 768px) {
+            .two-column {
+                grid-template-columns: 1fr;
+            }
+            
+            .button-group {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚡ 高速JWT刷讚工具</h1>
+            <p>使用 ff.mlbbai.com API | 0.1-0.7秒響應</p>
+        </div>
+        
+        <div class="panel">
+            <h2>🔑 JWT Token 生成</h2>
+            <div class="two-column">
+                <div class="input-group">
+                    <label for="jwt-uid">UID:</label>
+                    <input type="text" id="jwt-uid" value="4175098115" placeholder="輸入UID">
+                </div>
+                <div class="input-group">
+                    <label for="jwt-pass">Password Hash:</label>
+                    <input type="text" id="jwt-pass" value="EF66A4CFDBE3A7541271E3FE605A187D78F5DDA5B6ABB6D3AD10F97392C00499" placeholder="輸入密碼哈希">
+                </div>
+            </div>
+            <div class="button-group">
+                <button class="btn btn-primary" id="generate-jwt">
+                    <span id="jwt-text">🔑 生成Token</span>
+                    <span id="jwt-loading" class="loading" style="display: none;"></span>
+                </button>
+                <button class="btn btn-secondary" id="copy-token">📋 複製Token</button>
+            </div>
+            <div class="api-status" id="jwt-status">
+                JWT API: <span style="color: #4CAF50;">就緒</span> | 響應時間: 0.1-0.5秒
+            </div>
+        </div>
+        
+        <div class="panel">
+            <h2>🚀 高速刷讚系統</h2>
+            <div class="two-column">
+                <div class="input-group">
+                    <label for="like-uid">目標 UID:</label>
+                    <input type="text" id="like-uid" value="1720799848" placeholder="輸入刷讚UID">
+                </div>
+                <div class="input-group">
+                    <label for="like-key">API Key:</label>
+                    <input type="text" id="like-key" value="emon" placeholder="輸入API Key">
+                </div>
+            </div>
+            
+            <div class="two-column">
+                <div class="input-group">
+                    <label for="like-count">刷讚次數:</label>
+                    <input type="number" id="like-count" value="50" min="1" max="200">
+                </div>
+                <div class="input-group">
+                    <label for="like-delay">請求間隔 (ms):</label>
+                    <input type="number" id="like-delay" value="100" min="50" max="1000">
+                </div>
+            </div>
+            
+            <div class="button-group">
+                <button class="btn btn-primary" id="start-like">
+                    <span id="like-text">⚡ 開始刷讚</span>
+                    <span id="like-loading" class="loading" style="display: none;"></span>
+                </button>
+                <button class="btn btn-danger" id="stop-like" disabled>⏹️ 停止</button>
+                <button class="btn btn-secondary" id="test-like">🔍 測試連接</button>
+                <button class="btn btn-warning" id="reset-stats">🔄 重置</button>
+            </div>
+            
+            <div class="api-status" id="like-status">
+                Likes API: <span style="color: #4CAF50;">就緒</span> | 響應時間: 0.3-0.7秒
+            </div>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div>成功次數</div>
+                <div class="stat-value" id="success-count">0</div>
+                <div>次</div>
+            </div>
+            <div class="stat-card">
+                <div>總讚數</div>
+                <div class="stat-value" id="total-likes">0</div>
+                <div>個讚</div>
+            </div>
+            <div class="stat-card">
+                <div>當前速度</div>
+                <div class="stat-value" id="current-speed">0</div>
+                <div>次/秒</div>
+            </div>
+            <div class="stat-card">
+                <div>成功率</div>
+                <div class="stat-value" id="success-rate">100%</div>
+                <div>效率</div>
+            </div>
+        </div>
+        
+        <div class="log-panel">
+            <h3>📝 操作日誌</h3>
+            <div id="like-log">
+                <div class="log-entry">系統就緒，使用高速API進行刷讚...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class FastLikeBot {
+            constructor() {
+                this.config = {
+                    isRunning: false,
+                    stats: {
+                        success: 0,
+                        total: 0,
+                        likesAdded: 0,
+                        startTime: 0
+                    },
+                    jwtToken: '',
+                    currentSpeed: 0
+                };
+                
+                this.init();
+            }
+            
+            init() {
+                this.bindEvents();
+                this.loadStats();
+                this.startSpeedMonitor();
+            }
+            
+            bindEvents() {
+                // JWT Token 生成
+                document.getElementById('generate-jwt').addEventListener('click', () => this.generateJWT());
+                document.getElementById('copy-token').addEventListener('click', () => this.copyToken());
+                
+                // 刷讚功能
+                document.getElementById('start-like').addEventListener('click', () => this.startLiking());
+                document.getElementById('stop-like').addEventListener('click', () => this.stop());
+                document.getElementById('test-like').addEventListener('click', () => this.testConnection());
+                document.getElementById('reset-stats').addEventListener('click', () => this.resetStats());
+            }
+            
+            async generateJWT() {
+                const uid = document.getElementById('jwt-uid').value;
+                const pass = document.getElementById('jwt-pass').value;
+                
+                if (!uid || !pass) {
+                    this.log('❌ 請輸入UID和Password Hash', 'error');
+                    return;
+                }
+                
+                this.showJWTLoading(true);
+                
+                try {
+                    const startTime = Date.now();
+                    const response = await fetch(`https://ff.mlbbai.com/jwt/?uid=${uid}&pass=${pass}`);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    const endTime = Date.now();
+                    const responseTime = endTime - startTime;
+                    
+                    if (data && data[0] && data[0].token) {
+                        this.config.jwtToken = data[0].token;
+                        this.log(`✅ JWT Token 生成成功 (${responseTime}ms)`, 'success');
+                        this.log(`🔑 Token: ${data[0].token.substring(0, 50)}...`, 'info');
+                        
+                        document.getElementById('jwt-status').innerHTML = 
+                            `JWT API: <span style="color: #4CAF50;">成功</span> | 響應時間: ${responseTime}ms`;
+                    } else {
+                        throw new Error('無效的回應格式');
+                    }
+                    
+                } catch (error) {
+                    this.log(`❌ JWT生成失敗: ${error.message}`, 'error');
+                    document.getElementById('jwt-status').innerHTML = 
+                        `JWT API: <span style="color: #f44336;">錯誤</span> | ${error.message}`;
+                } finally {
+                    this.showJWTLoading(false);
+                }
+            }
+            
+            async startLiking() {
+                if (this.config.isRunning) return;
+                
+                const uid = document.getElementById('like-uid').value;
+                const key = document.getElementById('like-key').value;
+                const count = parseInt(document.getElementById('like-count').value);
+                const delay = parseInt(document.getElementById('like-delay').value);
+                
+                if (!uid || !key) {
+                    this.log('❌ 請輸入UID和API Key', 'error');
+                    return;
+                }
+                
+                this.config.isRunning = true;
+                this.config.stats = {
+                    success: 0,
+                    total: 0,
+                    likesAdded: 0,
+                    startTime: Date.now()
+                };
+                
+                document.getElementById('start-like').disabled = true;
+                document.getElementById('stop-like').disabled = false;
+                this.showLikeLoading(true);
+                
+                this.log(`🚀 開始高速刷讚 (目標: ${count}次, 間隔: ${delay}ms)...`, 'success');
+                
+                for (let i = 0; i < count && this.config.isRunning; i++) {
+                    const result = await this.makeLikeRequest(uid, key, i + 1);
+                    
+                    if (result.success) {
+                        this.config.stats.success++;
+                        this.config.stats.likesAdded += result.likesAdded;
+                        this.config.stats.total++;
+                        this.log(`✅ 第 ${i+1} 次成功: +${result.likesAdded} 讚`, 'success');
+                    } else {
+                        this.config.stats.total++;
+                        this.log(`❌ 第 ${i+1} 次失敗: ${result.message}`, 'error');
+                    }
+                    
+                    this.updateStats();
+                    
+                    if (i < count - 1 && this.config.isRunning) {
+                        await this.delay(delay);
+                    }
+                }
+                
+                if (this.config.isRunning) {
+                    this.complete();
+                }
+            }
+            
+            async makeLikeRequest(uid, key, attempt) {
+                try {
+                    const startTime = Date.now();
+                    const response = await fetch(`https://ff.mlbbai.com/like/?key=${key}&uid=${uid}`);
+                    const endTime = Date.now();
+                    const responseTime = endTime - startTime;
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    
+                    if (data.status === 1) {
+                        return {
+                            success: true,
+                            likesAdded: data.LikesGivenByAPI || 1,
+                            responseTime: responseTime
+                        };
+                    } else {
+                        return {
+                            success: false,
+                            likesAdded: 0,
+                            message: `狀態: ${data.status}`,
+                            responseTime: responseTime
+                        };
+                    }
+                    
+                } catch (error) {
+                    return {
+                        success: false,
+                        likesAdded: 0,
+                        message: `網路錯誤: ${error.message}`,
+                        responseTime: 0
+                    };
+                }
+            }
+            
+            async testConnection() {
+                const uid = document.getElementById('like-uid').value;
+                const key = document.getElementById('like-key').value;
+                
+                if (!uid || !key) {
+                    this.log('❌ 請輸入UID和API Key', 'error');
+                    return;
+                }
+                
+                this.log('🔍 測試API連接...', 'info');
+                
+                const result = await this.makeLikeRequest(uid, key, 0);
+                
+                if (result.success) {
+                    this.log(`✅ 連接測試成功! 響應時間: ${result.responseTime}ms`, 'success');
+                    document.getElementById('like-status').innerHTML = 
+                        `Likes API: <span style="color: #4CAF50;">正常</span> | 響應時間: ${result.responseTime}ms`;
+                } else {
+                    this.log(`❌ 連接測試失敗: ${result.message}`, 'error');
+                    document.getElementById('like-status').innerHTML = 
+                        `Likes API: <span style="color: #f44336;">錯誤</span> | ${result.message}`;
+                }
+            }
+            
+            complete() {
+                const totalTime = (Date.now() - this.config.stats.startTime) / 1000;
+                const speed = this.config.stats.success / totalTime;
+                const successRate = (this.config.stats.success / this.config.stats.total) * 100;
+                
+                this.log(`🎉 刷讚完成!`, 'success');
+                this.log(`📊 統計: ${this.config.stats.success}/${this.config.stats.total} 成功 (${successRate.toFixed(1)}%)`, 'success');
+                this.log(`⚡ 平均速度: ${speed.toFixed(1)}次/秒, 總讚數: +${this.config.stats.likesAdded}`, 'success');
+                
+                this.stop();
+                this.saveStats();
+            }
+            
+            stop() {
+                this.config.isRunning = false;
+                document.getElementById('start-like').disabled = false;
+                document.getElementById('stop-like').disabled = true;
+                this.showLikeLoading(false);
+                this.log('⏹️ 刷讚已停止', 'warning');
+            }
+            
+            resetStats() {
+                this.config.stats = {
+                    success: 0,
+                    total: 0,
+                    likesAdded: 0,
+                    startTime: 0
+                };
+                this.updateStats();
+                this.log('🔄 統計數據已重置', 'info');
+            }
+            
+            copyToken() {
+                if (!this.config.jwtToken) {
+                    this.log('❌ 請先生成Token', 'error');
+                    return;
+                }
+                
+                navigator.clipboard.writeText(this.config.jwtToken).then(() => {
+                    this.log('📋 Token已複製到剪貼板', 'success');
+                });
+            }
+            
+            startSpeedMonitor() {
+                setInterval(() => {
+                    if (this.config.isRunning && this.config.stats.startTime > 0) {
+                        const elapsed = (Date.now() - this.config.stats.startTime) / 1000;
+                        this.config.currentSpeed = this.config.stats.success / elapsed;
+                    }
+                }, 1000);
+            }
+            
+            updateStats() {
+                document.getElementById('success-count').textContent = this.config.stats.success;
+                document.getElementById('total-likes').textContent = this.config.stats.likesAdded;
+                document.getElementById('current-speed').textContent = this.config.currentSpeed.toFixed(1);
+                
+                const successRate = this.config.stats.total > 0 ? 
+                    (this.config.stats.success / this.config.stats.total) * 100 : 100;
+                document.getElementById('success-rate').textContent = successRate.toFixed(1) + '%';
+            }
+            
+            showJWTLoading(show) {
+                const text = document.getElementById('jwt-text');
+                const loading = document.getElementById('jwt-loading');
+                
+                if (show) {
+                    text.textContent = '生成中';
+                    loading.style.display = 'inline-block';
+                    document.getElementById('generate-jwt').disabled = true;
+                } else {
+                    text.textContent = '🔑 生成Token';
+                    loading.style.display = 'none';
+                    document.getElementById('generate-jwt').disabled = false;
+                }
+            }
+            
+            showLikeLoading(show) {
+                const text = document.getElementById('like-text');
+                const loading = document.getElementById('like-loading');
+                
+                if (show) {
+                    text.textContent = '刷讚中';
+                    loading.style.display = 'inline-block';
+                } else {
+                    text.textContent = '⚡ 開始刷讚';
+                    loading.style.display = 'none';
+                }
+            }
+            
+            log(message, type = 'info') {
+                const logElement = document.getElementById('like-log');
+                const timestamp = new Date().toLocaleTimeString();
+                const logEntry = document.createElement('div');
+                
+                logEntry.className = `log-entry ${type}`;
+                logEntry.textContent = `[${timestamp}] ${message}`;
+                
+                logElement.appendChild(logEntry);
+                logElement.scrollTop = logElement.scrollHeight;
+                
+                if (logElement.children.length > 50) {
+                    logElement.removeChild(logElement.firstChild);
+                }
+            }
+            
+            delay(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+            
+            saveStats() {
+                localStorage.setItem('fastLikeStats', JSON.stringify(this.config.stats));
+            }
+            
+            loadStats() {
+                try {
+                    const saved = localStorage.getItem('fastLikeStats');
+                    if (saved) {
+                        this.config.stats = JSON.parse(saved);
+                        this.updateStats();
+                    }
+                } catch (e) {
+                    console.log('無法載入統計數據');
+                }
+            }
+        }
+
+        // 初始化工具
+        document.addEventListener('DOMContentLoaded', () => {
+            window.fastBot = new FastLikeBot();
+        });
+    </script>
+</body>
+</html>
