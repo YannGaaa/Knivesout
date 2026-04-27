@@ -1,0 +1,1961 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8"> <!-- 設定網頁編碼為UTF-8，支援中文 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover"> <!-- 手機響應式設定，禁止縮放 -->
+    <title>🦖 恐龍冒險 · 每日任務版</title> <!-- 網頁標題 -->
+    <style>
+        /* ==================== 全域樣式重置 ==================== */
+        * {
+            margin: 0; /* 移除所有元素的外邊距 */
+            padding: 0; /* 移除所有元素的內邊距 */
+            box-sizing: border-box; /* 讓寬度計算包含邊框和內邊距 */
+            user-select: none; /* 禁止使用者選取文字 */
+            -webkit-tap-highlight-color: transparent; /* 移除手機點擊時的灰色背景 */
+            touch-action: manipulation; /* 優化觸控操作，減少延遲 */
+        }
+
+        body {
+            background: linear-gradient(145deg, #1a472a 0%, #0e2a1a 100%); /* 深綠色漸層背景 */
+            min-height: 100vh; /* 最小高度為整個視窗高度 */
+            display: flex; /* 使用彈性佈局 */
+            justify-content: center; /* 水平置中 */
+            align-items: center; /* 垂直置中 */
+            font-family: system-ui, 'Segoe UI', 'Courier New', monospace; /* 系統字體 */
+            padding: 12px; /* 外側內距 */
+        }
+
+        .screen { transition: all 0.2s ease; } /* 所有畫面切換時有淡入淡出效果 */
+        .hidden { display: none !important; } /* 隱藏元素的類別，優先級最高 */
+
+        /* ==================== 模式選擇頁面 ==================== */
+        .mode-select-screen {
+            background: #fef3df; /* 米黃色背景 */
+            border-radius: 48px; /* 圓角 */
+            padding: 25px 20px 35px 20px; /* 內距：上右下左 */
+            box-shadow: 0 30px 40px rgba(0, 0, 0, 0.5); /* 陰影效果 */
+            text-align: center; /* 文字置中 */
+            width: 100%; /* 寬度100% */
+            max-width: 600px; /* 最大寬度600px */
+        }
+
+        .mode-title { font-size: 1.6rem; font-weight: bold; color: #3a2a1f; margin-bottom: 15px; } /* 標題樣式 */
+        .coin-display { background: #ffd966; display: inline-block; padding: 6px 16px; border-radius: 40px; margin-bottom: 15px; font-weight: bold; font-size: 1.1rem; } /* 鑽石顯示區域 */
+        
+        /* ==================== 任務面板 ==================== */
+        .quest-panel {
+            background: #2a2c28; /* 深色背景 */
+            border-radius: 32px; /* 圓角 */
+            padding: 15px; /* 內距 */
+            margin: 15px 0; /* 上下外距15px */
+            text-align: left; /* 文字靠左 */
+        }
+        .quest-title {
+            color: #ffdb8e; /* 金色文字 */
+            font-size: 1rem; /* 字體大小 */
+            font-weight: bold; /* 粗體 */
+            margin-bottom: 10px; /* 下外距 */
+            display: flex; /* 彈性佈局 */
+            justify-content: space-between; /* 左右分散對齊 */
+            align-items: center; /* 垂直置中 */
+        }
+        .quest-reset-time {
+            font-size: 0.7rem; /* 小字體 */
+            color: #88aaff; /* 淡藍色 */
+        }
+        .quest-list {
+            display: flex; /* 彈性佈局 */
+            flex-direction: column; /* 垂直排列 */
+            gap: 10px; /* 項目間距 */
+        }
+        .quest-item {
+            background: #3a3c38; /* 深灰色背景 */
+            border-radius: 24px; /* 圓角 */
+            padding: 10px 12px; /* 內距 */
+            display: flex; /* 彈性佈局 */
+            justify-content: space-between; /* 左右分散 */
+            align-items: center; /* 垂直置中 */
+            transition: all 0.2s; /* 過渡效果 */
+        }
+        .quest-item.completed {
+            background: #4a6a3a; /* 完成時的綠色背景 */
+            opacity: 0.7; /* 半透明 */
+        }
+        .quest-info {
+            flex: 1; /* 佔據剩餘空間 */
+        }
+        .quest-name {
+            color: #ffdb8e; /* 金色 */
+            font-size: 0.85rem; /* 字體大小 */
+            font-weight: bold; /* 粗體 */
+        }
+        .quest-progress {
+            color: #ccdd99; /* 淡綠色 */
+            font-size: 0.7rem; /* 小字 */
+            margin-top: 3px; /* 上外距 */
+        }
+        .quest-reward {
+            color: #ffaa44; /* 橘色 */
+            font-size: 0.75rem; /* 字體大小 */
+            font-weight: bold; /* 粗體 */
+            margin-right: 12px; /* 右外距 */
+        }
+        .quest-claim-btn {
+            background: #6fbf4c; /* 綠色背景 */
+            border: none; /* 無邊框 */
+            padding: 5px 12px; /* 內距 */
+            border-radius: 30px; /* 圓角 */
+            font-size: 0.7rem; /* 字體大小 */
+            font-weight: bold; /* 粗體 */
+            color: white; /* 白色文字 */
+            cursor: pointer; /* 滑鼠指標改為手指 */
+            transition: 0.05s linear; /* 過渡效果 */
+        }
+        .quest-claim-btn:active { transform: translateY(2px); } /* 點擊時向下移動2px */
+        .quest-claim-btn.disabled {
+            background: #5a5a5a; /* 灰色背景 */
+            cursor: not-allowed; /* 禁止符號 */
+        }
+        .quest-claim-btn.completed {
+            background: #ffaa44; /* 橘色背景 */
+        }
+
+        /* ==================== 模式卡片 ==================== */
+        .mode-cards { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin: 15px 0 20px; } /* 卡片容器，可換行置中 */
+        .mode-card {
+            background: #fff6e8; /* 米白色背景 */
+            border-radius: 40px; /* 圓角 */
+            padding: 15px 12px 20px; /* 內距 */
+            width: 180px; /* 固定寬度 */
+            cursor: pointer; /* 手指指標 */
+            transition: transform 0.2s; /* 過渡效果 */
+            box-shadow: 0 8px 15px rgba(0,0,0,0.2); /* 陰影 */
+            border: 2px solid transparent; /* 透明邊框 */
+        }
+        .mode-card.active { border-color: #ffaa33; background: #fff2df; transform: scale(1.02); } /* 選中狀態：橘色邊框、放大一點點 */
+        .mode-icon { font-size: 3rem; margin-bottom: 8px; } /* 圖示大小 */
+        .mode-name { font-size: 1.2rem; font-weight: bold; } /* 模式名稱 */
+        .mode-desc { font-size: 0.7rem; margin-top: 5px; color: #5e4a2e; } /* 模式描述 */
+        .difficulty-tag { background: #2a2c28; color: #ffdb8e; padding: 2px 8px; border-radius: 20px; display: inline-block; margin-top: 6px; font-size: 0.6rem; } /* 難度標籤 */
+        .best-score { background: #2a2c28; color: #ffdb8e; padding: 4px 8px; border-radius: 30px; display: inline-block; margin-top: 8px; font-size: 0.7rem; } /* 最高分顯示 */
+
+        /* ==================== 按鈕樣式 ==================== */
+        .enter-game-btn, .shop-btn, .skill-shop-btn { background: #6fbf4c; border: none; font-size: 1rem; font-weight: bold; padding: 8px 16px; border-radius: 50px; color: white; box-shadow: 0 4px 0 #2d6a1f; cursor: pointer; margin: 5px; }
+        .shop-btn { background: #ffaa44; box-shadow: 0 4px 0 #aa6f30; } /* 商店按鈕橘色 */
+        .skill-shop-btn { background: #aa66ff; box-shadow: 0 4px 0 #6633aa; } /* 技能商店按鈕紫色 */
+
+        /* ==================== 商店頁面 ==================== */
+        .shop-screen, .skill-shop-screen {
+            background: #fef3df; border-radius: 40px; padding: 20px; width: 100%; max-width: 550px;
+        }
+        .shop-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 8px; }
+        .shop-coins { background: #ffd966; padding: 5px 12px; border-radius: 30px; font-weight: bold; font-size: 0.9rem; }
+        .skin-grid, .skill-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin: 15px 0; }
+        .skin-card, .skill-card {
+            background: #fff6e8; border-radius: 24px; padding: 12px; text-align: center;
+            border: 2px solid #cdb38c; transition: all 0.2s;
+        }
+        .skin-card.owned { border-color: #6fbf4c; background: #e8ffe0; }
+        .skin-card.selected { border-color: #ffaa33; background: #fff0d0; transform: scale(1.02); }
+        .skill-card.owned { border-color: #aa66ff; background: #f0e8ff; }
+        .skill-card.equipped { border-color: #ffaa33; background: #fff0d0; transform: scale(1.02); }
+        .skin-icon { font-size: 2.5rem; }
+        .skill-icon { font-size: 2rem; margin-bottom: 5px; }
+        .skin-name, .skill-name { font-weight: bold; margin: 5px 0; font-size: 0.85rem; }
+        .skill-desc { font-size: 0.65rem; color: #5e4a2e; margin: 3px 0; }
+        .skin-price, .skill-price { color: #ffaa33; font-weight: bold; font-size: 0.75rem; }
+        .buy-btn, .skill-buy-btn { background: #6fbf4c; border: none; padding: 4px 12px; border-radius: 25px; margin-top: 6px; cursor: pointer; font-size: 0.7rem; color: white; }
+        .equip-btn { background: #aa66ff; border: none; padding: 4px 12px; border-radius: 25px; margin-top: 6px; cursor: pointer; font-size: 0.7rem; color: white; }
+        .unequip-btn { background: #cdb38c; border: none; padding: 4px 12px; border-radius: 25px; margin-top: 6px; cursor: pointer; font-size: 0.7rem; }
+        .close-shop { background: #cdb38c; border: none; padding: 5px 15px; border-radius: 30px; font-size: 0.85rem; cursor: pointer; }
+
+        /* ==================== 遊戲畫面 ==================== */
+        .game-screen {
+            background: #f3efdb;
+            border-radius: 32px;
+            padding: 15px;
+            box-shadow: 0 25px 35px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 700px;
+        }
+
+        canvas {
+            display: block;
+            margin: 0 auto;
+            border-radius: 20px;
+            width: 100%;
+            height: auto;
+            background-color: #fef5e2;
+            cursor: pointer;
+        }
+
+        /* ==================== 遊戲頂部狀態欄 ==================== */
+        .game-top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .game-actions-left { display: flex; gap: 6px; flex-wrap: wrap; } /* 左側按鈕群組 */
+        .game-stats-right { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; } /* 右側狀態群組 */
+
+        /* 遊戲按鈕樣式 */
+        .game-btn {
+            background: #cdb38c;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 35px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: 0.05s linear;
+            color: #2a2418;
+        }
+        .game-btn:active { transform: translateY(2px); } /* 點擊時向下移動 */
+        .pause-btn { background: #6c8c5a; color: white; } /* 暫停按鈕綠色 */
+        .restart-btn { background: #ff9f4a; color: white; } /* 重來按鈕橘色 */
+        .volume-btn { background: #2a2c2a; color: #ffdb8e; font-size: 1rem; padding: 3px 10px; } /* 音量按鈕 */
+
+        /* 狀態卡片 */
+        .stat-card {
+            background: #1e2b2c;
+            padding: 4px 12px;
+            border-radius: 35px;
+            color: #f9cf5c;
+            font-weight: bold;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* 底部資訊欄 */
+        .game-info-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        /* 各種標籤樣式 */
+        .control-hint, .mode-badge, .skin-badge, .game-status, .time-badge, .skill-badge {
+            background: #2b2e3a;
+            padding: 3px 12px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+        }
+        .control-hint { color: #eedd99; } /* 操作提示 */
+        .mode-badge { color: #ccdd99; } /* 模式標籤 */
+        .skin-badge { color: #ffaa88; } /* 造型標籤 */
+        .game-status { color: #b9f6ca; } /* 遊戲狀態 */
+        .time-badge { color: #88aaff; } /* 時間標籤 */
+        .skill-badge { color: #dd99ff; background: #3a2a5a; } /* 技能標籤紫色背景 */
+
+        /* 提示訊息動畫 */
+        .toast {
+            position: fixed;
+            bottom: 25%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.85);
+            color: #ffd966;
+            padding: 8px 16px;
+            border-radius: 40px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            z-index: 1000;
+            animation: fadeOut 2s ease forwards;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        @keyframes fadeOut {
+            0% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            70% { opacity: 1; }
+            100% { opacity: 0; transform: translateX(-50%) translateY(-30px); }
+        }
+
+        /* ==================== 手機專用區域 ==================== */
+        .mobile-jump-area { 
+            display: none; /* ★ 修改1：預設顯示，進入遊戲就出現 ★ */
+            position: fixed; /* 固定位置在底部 */
+            bottom: 15px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            z-index: 100;
+        }
+        
+        /* 大型跳躍按鈕樣式 */
+        .jump-btn-large {
+            background: #f5bc70;
+            width: 75%;
+            max-width: 280px;
+            padding: 14px;
+            border-radius: 55px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border: none;
+            box-shadow: 0 6px 0 #aa6f30;
+            cursor: pointer;
+            touch-action: manipulation;
+            color: #3a2a1f;
+        }
+        .jump-btn-large:active { transform: translateY(3px); box-shadow: 0 3px 0 #aa6f30; } /* 點擊時下沉效果 */
+
+        /* 響應式設計：手機版 */
+        @media (max-width: 700px) {
+            body { padding: 8px; }
+            .mode-card { width: 155px; padding: 12px 8px; }
+            .mode-icon { font-size: 2.5rem; }
+            .mode-name { font-size: 1rem; }
+            .enter-game-btn, .shop-btn, .skill-shop-btn { font-size: 0.85rem; padding: 6px 12px; }
+            .control-hint { display: none; } /* 手機版隱藏鍵盤提示 */
+            .stat-card { padding: 3px 10px; font-size: 0.75rem; }
+            .game-btn { padding: 4px 10px; font-size: 0.7rem; }
+            .game-actions-left { gap: 4px; }
+            .quest-item { flex-wrap: wrap; gap: 8px; }
+            .quest-claim-btn { padding: 4px 10px; }
+            .toast { font-size: 0.8rem; bottom: 20%; }
+        }
+    </style>
+</head>
+<body>
+<!-- ==================== 主選單頁面 ==================== -->
+<div id="modeSelectScreen" class="screen mode-select-screen">
+    <div class="mode-title">🦖 恐龍冒險</div>
+    <div class="coin-display"> 💎: <span id="totalCoins">0</span></div>
+    
+    <!-- 每日任務面板 -->
+    <div class="quest-panel">
+        <div class="quest-title">
+            <span>📋 每日任務</span>
+            <span class="quest-reset-time" id="resetTimeDisplay">🔄 重置: --:--:--</span>
+        </div>
+        <div class="quest-list" id="questList"></div>
+    </div>
+    
+    <!-- 遊戲模式選擇卡片 -->
+    <div class="mode-cards">
+        <div id="classicCard" class="mode-card" data-mode="classic">
+            <div class="mode-icon">🌵</div>
+            <div class="mode-name">經典模式</div>
+            <div class="mode-desc">純粹反應！閃避仙人掌</div>
+            <div class="difficulty-tag">🔥 高難度</div>
+            <div class="best-score" id="classicBestLabel">🏆 最高分: 0</div>
+        </div>
+        <div id="foodCard" class="mode-card" data-mode="food">
+            <div class="mode-icon">🍎</div>
+            <div class="mode-name">食物模式</div>
+            <div class="mode-desc">吃蘋果 +5❤️ +10分</div>
+            <div class="difficulty-tag">⚖️ 平衡模式</div>
+            <div class="best-score" id="foodBestLabel">🏆 最高分: 0</div>
+        </div>
+    </div>
+    
+    <!-- 功能按鈕區 -->
+    <div>
+        <button id="openShopBtn" class="shop-btn">🛒 造型商店</button>
+        <button id="openSkillShopBtn" class="skill-shop-btn">⚡ 技能商店</button>
+        <button id="enterGameBtn" class="enter-game-btn">🚀 開始冒險</button>
+    </div>
+</div>
+
+<!-- ==================== 造型商店頁面 ==================== -->
+<div id="shopScreen" class="screen shop-screen hidden">
+    <div class="shop-header">
+        <h2 style="font-size:1.3rem;">🛍️ 造型商店</h2>
+        <div class="shop-coins">💎 <span id="shopCoins">0</span></div>
+        <button id="closeShopBtn" class="close-shop">✖️ 關閉</button>
+    </div>
+    <div class="skin-grid" id="skinGrid"></div>
+</div>
+
+<!-- ==================== 技能商店頁面 ==================== -->
+<div id="skillShopScreen" class="screen skill-shop-screen hidden">
+    <div class="shop-header">
+        <h2 style="font-size:1.3rem;">⚡ 技能商店</h2>
+        <div class="shop-coins">💎 <span id="skillShopCoins">0</span></div>
+        <button id="closeSkillShopBtn" class="close-shop">✖️ 關閉</button>
+    </div>
+    <div class="skill-grid" id="skillGrid"></div>
+</div>
+
+<!-- ==================== 遊戲畫面 ==================== -->
+<div id="gameScreen" class="screen game-screen hidden">
+    <!-- 頂部狀態欄 -->
+    <div class="game-top-bar">
+        <div class="game-actions-left">
+            <button id="backToModeBtn" class="game-btn">← 選單</button>
+            <button id="pauseBtn" class="game-btn pause-btn">⏸️ 暫停</button>
+            <button id="restartGameBtn" class="game-btn restart-btn">🔄 重來</button>
+        </div>
+        <div class="game-stats-right">
+            <div class="stat-card"><span>🏆</span> <span id="gameScore">0</span></div>
+            <div class="stat-card"><span>❤️</span> <span id="gameHealth">100</span></div>
+            <div class="stat-card"><span>💎</span> <span id="gameCoins">0</span></div>
+            <button id="volumeToggleBtn" class="game-btn volume-btn">🔊</button>
+        </div>
+    </div>
+
+    <!-- 遊戲畫布 -->
+    <canvas id="gameCanvas" width="1200" height="400"></canvas>
+
+    <!-- 底部資訊欄 -->
+    <div class="game-info-bar">
+        <div class="control-hint">🎮 點畫面跳躍</div>
+        <div class="mode-badge" id="modeHint">🍎 食物模式</div>
+        <div class="skin-badge" id="skinHint">🎨 經典恐龍</div>
+        <div class="time-badge" id="timeBadge">☀️ 白天</div>
+        <div class="skill-badge" id="skillBadge">⚡ 無技能</div>
+        <div class="game-status" id="gameRunningStatus">🏃‍♂️ 奔跑中</div>
+    </div>
+</div>
+
+<!-- ==================== 手機大型跳躍按鈕 ==================== -->
+<!-- ★ 修改2：按鈕預設顯示，進入遊戲就出現，不需要等待倒數結束 ★ -->
+<div class="mobile-jump-area" id="mobileJumpArea">
+    <button id="mobileJumpLargeBtn" class="jump-btn-large">🦘 點擊跳躍</button>
+</div>
+
+<script>
+    (function(){
+        // ==================== 每日任務系統 ====================
+        // 定義每日任務列表
+        const dailyQuests = [
+            { id: 'play_game', name: '🏃‍♂️ 遊戲達人', desc: '進行一局遊戲', target: 1, reward: 50, progress: 0, completed: false, claimed: false },
+            { id: 'score_100', name: '🎯 百尺竿頭', desc: '單局得分達到100分', target: 100, reward: 100, progress: 0, completed: false, claimed: false },
+            { id: 'score_300', name: '🏆 高分高手', desc: '單局得分達到300分', target: 300, reward: 200, progress: 0, completed: false, claimed: false },
+            { id: 'collect_coins', name: '💎 鑽石收集者', desc: '累積收集50枚鑽石', target: 50, reward: 150, progress: 0, completed: false, claimed: false },
+            { id: 'jump_count', name: '🦘 跳躍大師', desc: '累積跳躍30次', target: 30, reward: 80, progress: 0, completed: false, claimed: false }
+        ];
+        
+        let quests = []; // 儲存當前任務狀態
+        let lastResetDate = null; // 最後重置日期
+        
+        // 遊戲進行中的統計數據
+        let sessionStats = {
+            gamesPlayed: 0, // 遊戲局數
+            maxScore: 0, // 最高分數
+            totalCoinsCollected: 0, // 總收集鑽石
+            totalJumps: 0 // 總跳躍次數
+        };
+        
+        // 載入任務數據
+        function loadQuestData() {
+            const savedQuests = localStorage.getItem('daily_quests'); // 從本地儲存讀取任務
+            const savedResetDate = localStorage.getItem('quest_reset_date'); // 讀取重置日期
+            const savedStats = localStorage.getItem('quest_session_stats'); // 讀取統計數據
+            
+            const now = new Date(); // 當前時間
+            const today4am = getToday4AM(); // 取得今天凌晨4點的時間
+            
+            // 檢查是否需要重置任務
+            if(savedResetDate && new Date(parseInt(savedResetDate)) >= today4am) {
+                // 還沒過重置時間，載入保存的任務
+                if(savedQuests) {
+                    quests = JSON.parse(savedQuests);
+                } else {
+                    resetQuests(); // 重置任務
+                }
+            } else {
+                // 需要重置任務
+                resetQuests(); // 重置任務
+                localStorage.setItem('quest_reset_date', today4am.getTime()); // 儲存新的重置時間
+            }
+            
+            // 載入統計數據
+            if(savedStats) {
+                const stats = JSON.parse(savedStats);
+                // 檢查是否是同一輪，如果不是則重置
+                if(stats.resetDate && new Date(parseInt(stats.resetDate)) >= today4am) {
+                    sessionStats = stats;
+                } else {
+                    resetSessionStats(); // 重置統計
+                }
+            } else {
+                resetSessionStats(); // 重置統計
+            }
+            
+            updateQuestDisplay(); // 更新任務顯示
+            startResetTimer(); // 啟動重置倒數計時器
+        }
+        
+        // 取得今天凌晨4點的時間
+        function getToday4AM() {
+            const now = new Date(); // 當前時間
+            const today4am = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 4, 0, 0); // 今天凌晨4點
+            if(now < today4am) {
+                today4am.setDate(today4am.getDate() - 1); // 如果現在還沒到4點，取昨天的4點
+            }
+            return today4am;
+        }
+        
+        // 重置所有任務
+        function resetQuests() {
+            quests = dailyQuests.map(q => ({
+                id: q.id,
+                name: q.name,
+                desc: q.desc,
+                target: q.target,
+                reward: q.reward,
+                progress: 0,
+                completed: false,
+                claimed: false
+            }));
+            saveQuests(); // 儲存任務
+        }
+        
+        // 重置會話統計
+        function resetSessionStats() {
+            sessionStats = {
+                gamesPlayed: 0,
+                maxScore: 0,
+                totalCoinsCollected: 0,
+                totalJumps: 0,
+                resetDate: getToday4AM().getTime()
+            };
+            saveSessionStats(); // 儲存統計
+        }
+        
+        // 儲存任務到本地
+        function saveQuests() {
+            localStorage.setItem('daily_quests', JSON.stringify(quests));
+        }
+        
+        // 儲存統計到本地
+        function saveSessionStats() {
+            localStorage.setItem('quest_session_stats', JSON.stringify(sessionStats));
+        }
+        
+        // 更新任務進度
+        function updateQuestProgress(statName, value) {
+            // 更新會話統計
+            if(statName === 'gamesPlayed') sessionStats.gamesPlayed += value;
+            if(statName === 'maxScore' && value > sessionStats.maxScore) sessionStats.maxScore = value;
+            if(statName === 'totalCoinsCollected') sessionStats.totalCoinsCollected += value;
+            if(statName === 'totalJumps') sessionStats.totalJumps += value;
+            saveSessionStats(); // 儲存統計
+            
+            // 更新任務進度
+            let updated = false;
+            for(let quest of quests) {
+                if(quest.claimed || quest.completed) continue; // 已完成或已領取的跳過
+                
+                // 根據不同任務類型更新進度
+                if(quest.id === 'play_game' && statName === 'gamesPlayed') {
+                    quest.progress = Math.min(quest.target, sessionStats.gamesPlayed);
+                    if(quest.progress >= quest.target) quest.completed = true;
+                    updated = true;
+                }
+                if(quest.id === 'score_100' && statName === 'maxScore') {
+                    if(sessionStats.maxScore >= quest.target) {
+                        quest.completed = true;
+                        quest.progress = quest.target;
+                        updated = true;
+                    }
+                }
+                if(quest.id === 'score_300' && statName === 'maxScore') {
+                    if(sessionStats.maxScore >= quest.target) {
+                        quest.completed = true;
+                        quest.progress = quest.target;
+                        updated = true;
+                    }
+                }
+                if(quest.id === 'collect_coins' && statName === 'totalCoinsCollected') {
+                    quest.progress = Math.min(quest.target, sessionStats.totalCoinsCollected);
+                    if(quest.progress >= quest.target) quest.completed = true;
+                    updated = true;
+                }
+                if(quest.id === 'jump_count' && statName === 'totalJumps') {
+                    quest.progress = Math.min(quest.target, sessionStats.totalJumps);
+                    if(quest.progress >= quest.target) quest.completed = true;
+                    updated = true;
+                }
+            }
+            
+            // 如果有更新，儲存並刷新顯示
+            if(updated) {
+                saveQuests();
+                updateQuestDisplay();
+            }
+        }
+        
+        // 領取任務獎勵
+        function claimReward(questId) {
+            const quest = quests.find(q => q.id === questId);
+            if(!quest || !quest.completed || quest.claimed) return false;
+            
+            totalCoins += quest.reward; // 增加金幣
+            quest.claimed = true; // 標記為已領取
+            saveQuests(); // 儲存任務
+            saveSkinData(); // 儲存金幣
+            updateQuestDisplay(); // 更新顯示
+            updateCoinDisplay(); // 更新金幣顯示
+            showToast(`🎉 獲得 ${quest.reward} 鑽石！`); // 顯示提示
+            return true;
+        }
+        
+        // 更新任務顯示介面
+        function updateQuestDisplay() {
+            const container = document.getElementById('questList');
+            if(!container) return;
+            
+            container.innerHTML = ''; // 清空容器
+            for(let quest of quests) {
+                const div = document.createElement('div');
+                div.className = `quest-item ${quest.completed ? 'completed' : ''}`;
+                
+                let statusText = '';
+                let btnText = '';
+                let btnDisabled = false;
+                
+                // 根據任務狀態設定顯示文字
+                if(quest.claimed) {
+                    statusText = '✅ 已領取';
+                    btnText = '已領取';
+                    btnDisabled = true;
+                } else if(quest.completed) {
+                    statusText = `✓ 可領取 ${quest.reward}💎`;
+                    btnText = '領取';
+                    btnDisabled = false;
+                } else {
+                    statusText = `${quest.progress} / ${quest.target}`;
+                    btnText = '進行中';
+                    btnDisabled = true;
+                }
+                
+                // 建立任務卡片HTML
+                div.innerHTML = `
+                    <div class="quest-info">
+                        <div class="quest-name">${quest.name}</div>
+                        <div class="quest-progress">${quest.desc} (${statusText})</div>
+                    </div>
+                    <div class="quest-reward">+${quest.reward}💎</div>
+                    ${!quest.claimed ? `<button class="quest-claim-btn ${quest.completed ? 'completed' : 'disabled'}" data-id="${quest.id}" ${btnDisabled ? 'disabled' : ''}>${btnText}</button>` : `<button class="quest-claim-btn disabled" disabled>✅ 已領取</button>`}
+                `;
+                container.appendChild(div);
+            }
+            
+            // 綁定領取按鈕事件
+            document.querySelectorAll('.quest-claim-btn:not(.disabled)').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const id = btn.dataset.id;
+                    claimReward(id);
+                });
+            });
+        }
+        
+        // 啟動重置倒數計時器
+        function startResetTimer() {
+            function updateResetTime() {
+                const now = new Date(); // 當前時間
+                const nextReset = getToday4AM(); // 下次重置時間
+                nextReset.setDate(nextReset.getDate() + 1); // 加一天
+                const diff = nextReset - now; // 時間差
+                
+                if(diff <= 0) {
+                    location.reload(); // 時間到，重新整理頁面
+                    return;
+                }
+                
+                // 計算時分秒
+                const hours = Math.floor(diff / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                
+                const resetSpan = document.getElementById('resetTimeDisplay');
+                if(resetSpan) {
+                    resetSpan.innerHTML = `🔄 重置: ${hours.toString().padStart(2,'0')}:${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')}`;
+                }
+            }
+            updateResetTime(); // 立即更新一次
+            setInterval(updateResetTime, 1000); // 每秒更新
+        }
+        
+        // 顯示提示訊息
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2000); // 2秒後移除
+        }
+        
+        // ==================== 技能系統 ====================
+        // 技能列表
+        const skillsList = [
+            { id: 'invincible', name: '🛡️ 無敵護盾', desc: '開局10秒內無敵', price: 300, effect: 'invincible', duration: 600 },
+            { id: 'speedBoost', name: '⚡ 開局加速', desc: '開局速度+3，持續15秒', price: 200, effect: 'speedBoost', duration: 900 },
+            { id: 'doubleCoin', name: '💎 雙倍鑽石', desc: '鑽石獲得量x2，持續20秒', price: 250, effect: 'doubleCoin', duration: 1200 },
+            { id: 'magnet', name: '🧲 磁鐵', desc: '自動吸取附近💎，持續15秒', price: 350, effect: 'magnet', duration: 900 }
+        ];
+        
+        let ownedSkills = []; // 已購買的技能
+        let equippedSkills = []; // 已裝備的技能（最多2個）
+        
+        // 造型系統
+        const skins = [
+            { id: 'default', name: '經典恐龍', price: 0, icon: '🦖', color1: '#4aa53d', color2: '#92ea70', eyeColor: '#fff6e0', unlock: true },
+            { id: 'fire', name: '火焰龍', price: 500, icon: '🔥', color1: '#e34d2e', color2: '#ff8844', eyeColor: '#fff6e0', unlock: false },
+            { id: 'ice', name: '冰霜龍', price: 500, icon: '❄️', color1: '#44aaff', color2: '#88ccff', eyeColor: '#e0f0ff', unlock: false },
+            { id: 'golden', name: '黃金龍', price: 1000, icon: '👑', color1: '#ffcc44', color2: '#ffee88', eyeColor: '#fff8e0', unlock: false },
+            { id: 'dark', name: '暗影龍', price: 800, icon: '🌙', color1: '#5a4a6e', color2: '#9a8aae', eyeColor: '#d0c0e0', unlock: false }
+        ];
+        
+        let ownedSkins = ['default']; // 已擁有的造型
+        let currentSkin = 'default'; // 當前使用的造型
+        let totalCoins = 0; // 總金幣數
+        
+        // 遊戲中技能效果狀態
+        let activeEffectRemaining = {
+            invincible: 0, // 無敵剩餘時間
+            speedBoost: 0, // 加速剩餘時間
+            doubleCoin: 0, // 雙倍金幣剩餘時間
+            magnet: 0 // 磁鐵剩餘時間
+        };
+        let originalGameSpeed = 7.0; // 原始遊戲速度
+        
+        // 載入技能數據
+        function loadSkillData() {
+            const saved = localStorage.getItem('dino_skills_owned');
+            if(saved) ownedSkills = JSON.parse(saved);
+            const savedEquipped = localStorage.getItem('dino_skills_equipped');
+            if(savedEquipped) equippedSkills = JSON.parse(savedEquipped);
+            equippedSkills = equippedSkills.filter(s => ownedSkills.includes(s)); // 確保裝備的技能都是已購買的
+        }
+        
+        // 儲存技能數據
+        function saveSkillData() {
+            localStorage.setItem('dino_skills_owned', JSON.stringify(ownedSkills));
+            localStorage.setItem('dino_skills_equipped', JSON.stringify(equippedSkills));
+        }
+        
+        // 購買技能
+        function purchaseSkill(skillId) {
+            const skill = skillsList.find(s => s.id === skillId);
+            if(!skill || ownedSkills.includes(skillId)) return false;
+            if(totalCoins >= skill.price) {
+                totalCoins -= skill.price;
+                ownedSkills.push(skillId);
+                saveSkinData(); // 儲存金幣
+                saveSkillData(); // 儲存技能
+                renderSkillShop(); // 重新渲染商店
+                return true;
+            }
+            return false;
+        }
+        
+        // 裝備/卸載技能
+        function toggleEquipSkill(skillId) {
+            if(!ownedSkills.includes(skillId)) return false;
+            
+            if(equippedSkills.includes(skillId)) {
+                // 卸載技能
+                equippedSkills = equippedSkills.filter(s => s !== skillId);
+            } else {
+                // 裝備技能（最多2個）
+                if(equippedSkills.length >= 2) {
+                    alert('最多只能同時裝備 2 個技能！');
+                    return false;
+                }
+                equippedSkills.push(skillId);
+            }
+            saveSkillData();
+            renderSkillShop();
+            updateSkillBadge();
+            return true;
+        }
+        
+        // 啟動裝備的技能效果（遊戲開始時呼叫）
+        function activateEquippedSkills() {
+            // 重置所有效果
+            activeEffectRemaining = { invincible: 0, speedBoost: 0, doubleCoin: 0, magnet: 0 };
+            for(let skillId of equippedSkills) {
+                const skill = skillsList.find(s => s.id === skillId);
+                if(skill) activeEffectRemaining[skill.effect] = skill.duration;
+            }
+            // 立即應用加速效果
+            if(activeEffectRemaining.speedBoost > 0) {
+                originalGameSpeed = gameSpeed;
+                gameSpeed = Math.min(maxGameSpeed + 2, gameSpeed + 3);
+            }
+            updateSkillBadge();
+        }
+        
+        // 更新技能效果（每幀呼叫）
+        function updateActiveEffects() {
+            for(let effect in activeEffectRemaining) {
+                if(activeEffectRemaining[effect] > 0) {
+                    activeEffectRemaining[effect]--;
+                    if(activeEffectRemaining[effect] === 0 && effect === 'speedBoost') {
+                        gameSpeed = Math.max(4.5, originalGameSpeed); // 加速結束，恢復速度
+                    }
+                }
+            }
+            updateSkillBadge();
+        }
+        
+        // 檢查是否無敵
+        function isInvincible() { return activeEffectRemaining.invincible > 0; }
+        // 檢查是否雙倍金幣
+        function isDoubleCoinActive() { return activeEffectRemaining.doubleCoin > 0; }
+        // 檢查是否磁鐵
+        function isMagnetActive() { return activeEffectRemaining.magnet > 0; }
+        
+        // 更新技能標籤顯示
+        function updateSkillBadge() {
+            const badge = document.getElementById('skillBadge');
+            if(!badge) return;
+            let activeIcons = [];
+            if(activeEffectRemaining.invincible > 0) activeIcons.push('🛡️');
+            if(activeEffectRemaining.speedBoost > 0) activeIcons.push('⚡');
+            if(activeEffectRemaining.doubleCoin > 0) activeIcons.push('💎');
+            if(activeEffectRemaining.magnet > 0) activeIcons.push('🧲');
+            
+            if(activeIcons.length > 0) {
+                badge.innerHTML = `✨ ${activeIcons.join(' ')}`;
+                badge.style.background = '#aa66ff';
+            } else if(equippedSkills.length > 0) {
+                badge.innerHTML = `⚡ 已裝備 ${equippedSkills.length} 技能`;
+                badge.style.background = '#3a2a5a';
+            } else {
+                badge.innerHTML = '⚡ 無技能';
+                badge.style.background = '#2b2e3a';
+            }
+        }
+        
+        // 渲染技能商店
+        function renderSkillShop() {
+            const grid = document.getElementById('skillGrid');
+            if(!grid) return;
+            grid.innerHTML = '';
+            for(let skill of skillsList) {
+                const owned = ownedSkills.includes(skill.id);
+                const equipped = equippedSkills.includes(skill.id);
+                const div = document.createElement('div');
+                div.className = `skill-card ${owned ? 'owned' : ''} ${equipped ? 'equipped' : ''}`;
+                div.innerHTML = `
+                    <div class="skill-icon">${skill.name.split(' ')[0]}</div>
+                    <div class="skill-name">${skill.name}</div>
+                    <div class="skill-desc">${skill.desc}</div>
+                    ${!owned ? `<div class="skill-price">💎 ${skill.price}</div>` : '<div class="skill-price">✅ 已擁有</div>'}
+                    ${!owned ? `<button class="skill-buy-btn" data-id="${skill.id}">購買</button>` : 
+                      (equipped ? `<button class="unequip-btn" data-id="${skill.id}">卸載</button>` : 
+                       `<button class="equip-btn" data-id="${skill.id}">裝備</button>`)}
+                `;
+                grid.appendChild(div);
+            }
+            // 綁定購買按鈕事件
+            document.querySelectorAll('.skill-buy-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const id = btn.dataset.id;
+                    if(purchaseSkill(id)) renderSkillShop();
+                    else alert('金幣不足！');
+                });
+            });
+            // 綁定裝備/卸載按鈕事件
+            document.querySelectorAll('.equip-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const id = btn.dataset.id;
+                    toggleEquipSkill(id);
+                });
+            });
+            document.querySelectorAll('.unequip-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const id = btn.dataset.id;
+                    toggleEquipSkill(id);
+                });
+            });
+        }
+        
+        // ==================== 造型系統 ====================
+        // 載入造型數據
+        function loadSkinData() {
+            const saved = localStorage.getItem('dino_skins');
+            if(saved) ownedSkins = JSON.parse(saved);
+            const savedCurrent = localStorage.getItem('dino_current_skin');
+            if(savedCurrent) currentSkin = savedCurrent;
+            const savedCoins = localStorage.getItem('dino_coins');
+            if(savedCoins) totalCoins = parseInt(savedCoins);
+            updateSkinUnlockStatus();
+        }
+        
+        // 更新造型解鎖狀態
+        function updateSkinUnlockStatus() {
+            for(let skin of skins) skin.unlock = ownedSkins.includes(skin.id);
+        }
+        
+        // 儲存造型數據
+        function saveSkinData() {
+            localStorage.setItem('dino_skins', JSON.stringify(ownedSkins));
+            localStorage.setItem('dino_current_skin', currentSkin);
+            localStorage.setItem('dino_coins', totalCoins);
+            updateCoinDisplay();
+        }
+        
+        // 增加金幣
+        function addCoins(amount) { 
+            let finalAmount = isDoubleCoinActive() ? amount * 2 : amount;
+            totalCoins += finalAmount;
+            // 更新任務進度
+            updateQuestProgress('totalCoinsCollected', finalAmount);
+            saveSkinData();
+        }
+        
+        // 更新金幣顯示
+        function updateCoinDisplay() {
+            document.getElementById('totalCoins').innerText = totalCoins;
+            document.getElementById('shopCoins').innerText = totalCoins;
+            document.getElementById('skillShopCoins').innerText = totalCoins;
+            document.getElementById('gameCoins').innerText = totalCoins;
+        }
+        
+        // 購買造型
+        function purchaseSkin(skinId) {
+            const skin = skins.find(s => s.id === skinId);
+            if(!skin || ownedSkins.includes(skinId)) return false;
+            if(totalCoins >= skin.price) {
+                totalCoins -= skin.price;
+                ownedSkins.push(skinId);
+                saveSkinData();
+                renderShop();
+                return true;
+            }
+            return false;
+        }
+        
+        // 選擇造型
+        function selectSkin(skinId) {
+            if(ownedSkins.includes(skinId)) {
+                currentSkin = skinId;
+                saveSkinData();
+                renderShop();
+                const skinHint = document.getElementById('skinHint');
+                if(skinHint) {
+                    const skin = skins.find(s => s.id === skinId);
+                    skinHint.innerHTML = `🎨 ${skin ? skin.name : '恐龍'}`;
+                }
+            }
+        }
+        
+        // 取得當前造型
+        function getCurrentSkin() {
+            return skins.find(s => s.id === currentSkin) || skins[0];
+        }
+        
+        // 渲染造型商店
+        function renderShop() {
+            const grid = document.getElementById('skinGrid');
+            if(!grid) return;
+            grid.innerHTML = '';
+            for(let skin of skins) {
+                const owned = ownedSkins.includes(skin.id);
+                const selected = currentSkin === skin.id;
+                const div = document.createElement('div');
+                div.className = `skin-card ${owned ? 'owned' : 'locked'} ${selected ? 'selected' : ''}`;
+                div.innerHTML = `
+                    <div class="skin-icon">${skin.icon}</div>
+                    <div class="skin-name">${skin.name}</div>
+                    ${!owned ? `<div class="skin-price">💎 ${skin.price}</div>` : '<div class="skin-price">✅ 已擁有</div>'}
+                    ${!owned ? `<button class="buy-btn" data-id="${skin.id}">購買</button>` : `<button class="buy-btn select-btn" data-id="${skin.id}">${selected ? '✓ 使用中' : '裝備'}</button>`}
+                `;
+                grid.appendChild(div);
+            }
+            // 綁定購買/裝備按鈕事件
+            document.querySelectorAll('.buy-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const id = btn.dataset.id;
+                    if(ownedSkins.includes(id)) selectSkin(id);
+                    else if(purchaseSkin(id)) renderShop();
+                    else alert('金幣不足！');
+                });
+            });
+        }
+        
+        // ==================== DOM 元素 ====================
+        const modeSelectDiv = document.getElementById('modeSelectScreen');
+        const gameScreenDiv = document.getElementById('gameScreen');
+        const shopScreenDiv = document.getElementById('shopScreen');
+        const skillShopScreenDiv = document.getElementById('skillShopScreen');
+        const classicCard = document.getElementById('classicCard');
+        const foodCard = document.getElementById('foodCard');
+        const enterBtn = document.getElementById('enterGameBtn');
+        const openShopBtn = document.getElementById('openShopBtn');
+        const openSkillShopBtn = document.getElementById('openSkillShopBtn');
+        const closeShopBtn = document.getElementById('closeShopBtn');
+        const closeSkillShopBtn = document.getElementById('closeSkillShopBtn');
+        const backBtn = document.getElementById('backToModeBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const volumeBtn = document.getElementById('volumeToggleBtn');
+        const restartGameBtn = document.getElementById('restartGameBtn');
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.width = 1200; // 設定畫布寬度
+        canvas.height = 400; // 設定畫布高度
+        
+        // ==================== 遊戲核心狀態 ====================
+        let currentMode = "food"; // 當前模式：classic(經典) 或 food(食物)
+        let isGameActive = false; // 遊戲邏輯是否執行中
+        let gameRunning = false; // 遊戲是否進行中
+        let isCountdownActive = false; // 是否在倒數中
+        let countdownValue = 3; // 倒數數字
+        let countdownTimer = null; // 倒數計時器
+        let isPaused = false; // 是否暫停
+        let pauseCountdownActive = false; // 暫停後倒數中
+        let pauseCountdownValue = 3; // 暫停後倒數數字
+        let pauseCountdownTimer = null; // 暫停後倒數計時器
+        
+        let score = 0; // 當前分數
+        let health = 100; // 當前體力
+        let animationId = null; // 動畫ID
+        let sessionJumps = 0; // 會話跳躍次數
+        
+        let timeOfDay = 0; // 時間：0白天 1黃昏 2夜晚
+        let lastTimeOfDay = 0; // 上次的時間
+        
+        let particles = []; // 粒子特效陣列
+        let clouds = [ // 雲朵陣列
+            { x: 150, y: 60, w: 110, h: 50, speed: 0.2 },
+            { x: 500, y: 100, w: 130, h: 55, speed: 0.35 },
+            { x: 900, y: 45, w: 90, h: 45, speed: 0.25 },
+            { x: 1100, y: 120, w: 120, h: 52, speed: 0.3 }
+        ];
+        
+        let stars = []; // 星星陣列（夜晚用）
+        for(let i = 0; i < 80; i++) {
+            stars.push({ x: Math.random() * canvas.width, y: Math.random() * 180, size: 1 + Math.random() * 3 });
+        }
+        
+        let coinItems = []; // 金幣物件陣列
+        
+        // 最高分記錄
+        let classicBest = 0, foodBest = 0;
+        function loadBestScores() {
+            classicBest = parseInt(localStorage.getItem('dino_classic_best')) || 0;
+            foodBest = parseInt(localStorage.getItem('dino_food_best')) || 0;
+            document.getElementById('classicBestLabel').innerHTML = `🏆 最高分: ${classicBest}`;
+            document.getElementById('foodBestLabel').innerHTML = `🏆 最高分: ${foodBest}`;
+        }
+        
+        // 儲存最高分
+        function saveBestScore() {
+            let currentScoreFloor = Math.floor(score);
+            if(currentMode === 'classic') {
+                if(currentScoreFloor > classicBest) {
+                    classicBest = currentScoreFloor;
+                    localStorage.setItem('dino_classic_best', classicBest);
+                    document.getElementById('classicBestLabel').innerHTML = `🏆 最高分: ${classicBest}`;
+                }
+            } else {
+                if(currentScoreFloor > foodBest) {
+                    foodBest = currentScoreFloor;
+                    localStorage.setItem('dino_food_best', foodBest);
+                    document.getElementById('foodBestLabel').innerHTML = `🏆 最高分: ${foodBest}`;
+                }
+            }
+            // 更新任務進度 - 最高分
+            updateQuestProgress('maxScore', currentScoreFloor);
+        }
+        
+        // 更新UI顯示
+        function updateUI() {
+            document.getElementById('gameScore').innerText = Math.floor(score);
+            document.getElementById('gameHealth').innerText = Math.floor(health);
+        }
+        
+        // 更新時間（白天/黃昏/夜晚）
+        function updateTimeOfDay() {
+            if(score < 300) timeOfDay = 0;
+            else if(score < 800) timeOfDay = 1;
+            else timeOfDay = 2;
+            
+            if(timeOfDay !== lastTimeOfDay) {
+                const badge = document.getElementById('timeBadge');
+                if(badge) {
+                    if(timeOfDay === 0) badge.innerHTML = '☀️ 白天';
+                    else if(timeOfDay === 1) badge.innerHTML = '🌤️ 黃昏';
+                    else badge.innerHTML = '🌙 夜晚';
+                }
+                lastTimeOfDay = timeOfDay;
+            }
+        }
+        
+        // ==================== 恐龍物理 ====================
+        const DINO_W = 48, DINO_H = 52; // 恐龍寬高
+        let dinoX = 90; // 恐龍X座標
+        let dinoY = 0, dinoVy = 0, isJumping = false; // Y座標、Y速度、是否跳躍中
+        const GRAVITY = 0.82; // 重力加速度
+        const JUMP_FORCE = -11.5; // 跳躍力度
+        const GROUND_HEIGHT = 55; // 地面高度
+        let groundBaseY = canvas.height - GROUND_HEIGHT; // 地面Y座標
+        
+        function getDinoGroundY() { return groundBaseY - DINO_H; } // 取得恐龍地面Y座標
+        function resetDinoPhysics() { // 重置恐龍物理狀態
+            dinoY = getDinoGroundY();
+            dinoVy = 0;
+            isJumping = false;
+        }
+        
+        // 加入碰撞特效
+        function addCollisionEffect(x, y) {
+            for(let i = 0; i < 15; i++) {
+                particles.push({
+                    x: x + Math.random() * DINO_W,
+                    y: y + Math.random() * DINO_H,
+                    vx: (Math.random() - 0.5) * 5,
+                    vy: (Math.random() - 0.5) * 5 - 2,
+                    life: 22,
+                    size: 4 + Math.random() * 4,
+                    color: timeOfDay === 2 ? '#ff8866' : `hsl(${Math.random() * 40 + 20}, 70%, 55%)`
+                });
+            }
+        }
+        
+        // 加入金幣特效
+        function addCoinEffect(x, y) {
+            for(let i = 0; i < 8; i++) {
+                particles.push({
+                    x: x + Math.random() * 20,
+                    y: y + Math.random() * 20,
+                    vx: (Math.random() - 0.5) * 4,
+                    vy: (Math.random() - 0.5) * 4 - 2,
+                    life: 18,
+                    size: 3 + Math.random() * 3,
+                    color: '#FFD700'
+                });
+            }
+        }
+        
+        // 更新粒子特效
+        function updateParticles() {
+            for(let i = 0; i < particles.length; i++) {
+                particles[i].x += particles[i].vx;
+                particles[i].y += particles[i].vy;
+                particles[i].life--;
+                if(particles[i].life <= 0) particles.splice(i,1), i--;
+            }
+        }
+        
+        // 繪製粒子
+        function drawParticles() {
+            for(let p of particles) {
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        
+        // 更新雲朵位置
+        function updateClouds() {
+            for(let cloud of clouds) {
+                cloud.x += cloud.speed;
+                if(cloud.x > canvas.width + 150) cloud.x = -150;
+            }
+        }
+        
+        // 繪製雲朵
+        function drawClouds() {
+            let cloudColor = timeOfDay === 2 ? "rgba(80, 80, 100, 0.6)" : "rgba(255, 255, 245, 0.8)";
+            for(let cloud of clouds) {
+                ctx.fillStyle = cloudColor;
+                ctx.beginPath();
+                ctx.ellipse(cloud.x, cloud.y, cloud.w/2, cloud.h/2, 0, 0, Math.PI*2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.ellipse(cloud.x + cloud.w/3, cloud.y - cloud.h/4, cloud.w/3, cloud.h/2.5, 0, 0, Math.PI*2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.ellipse(cloud.x - cloud.w/4, cloud.y - cloud.h/5, cloud.w/3.5, cloud.h/2.8, 0, 0, Math.PI*2);
+                ctx.fill();
+            }
+        }
+        
+        // 繪製星星（夜晚）
+        function drawStars() {
+            if(timeOfDay !== 2) return;
+            for(let star of stars) {
+                ctx.fillStyle = `rgba(255, 240, 200, ${0.3 + Math.random() * 0.5})`;
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        
+        // ==================== 障礙物 ====================
+        let obstacles = []; // 障礙物陣列
+        let foods = []; // 食物陣列
+        const OBSTACLE_W = 22, OBSTACLE_H = 40; // 障礙物寬高
+        let gameSpeed = 7.0; // 遊戲速度
+        let maxGameSpeed = 9.5; // 最大速度
+        let cactusSpawnTimer = 0; // 仙人掌生成計時器
+        let foodSpawnTimer = 0; // 食物生成計時器
+        let coinSpawnTimer = 0; // 金幣生成計時器
+        let speedUpTimer = 0; // 加速計時器
+        
+        const FOOD_HEAL = 5; // 食物補血
+        const FOOD_SCORE = 10; // 食物加分
+        const DAMAGE = 30; // 碰撞傷害
+        
+        // 檢查新物件是否與現有物件重疊
+        function isOverlapWithObjects(newX, checkFoods = true, checkCoins = true) {
+            const threshold = 38;
+            for(let obs of obstacles) if(Math.abs(obs.x - newX) < threshold) return true;
+            if(checkFoods && currentMode === 'food') for(let fd of foods) if(Math.abs(fd.x - newX) < threshold) return true;
+            if(checkCoins) for(let coin of coinItems) if(Math.abs(coin.x - newX) < threshold) return true;
+            return false;
+        }
+        
+        // 生成仙人掌
+        function trySpawnCactus() {
+            if(cactusSpawnTimer <= 0) {
+                let newX = canvas.width;
+                if(isOverlapWithObjects(newX, true, true)) newX = canvas.width + 30;
+                if(obstacles.length < 3 && !isOverlapWithObjects(newX, true, true)) {
+                    obstacles.push({ x: newX, w: OBSTACLE_W, h: OBSTACLE_H });
+                }
+                let baseDelay = Math.max(45, 85 - Math.floor(gameSpeed * 2));
+                let delay = baseDelay + Math.floor(Math.random() * 50);
+                cactusSpawnTimer = delay;
+            } else {
+                cactusSpawnTimer--;
+            }
+        }
+        
+        // 生成食物
+        function trySpawnFood() {
+            if(currentMode !== 'food') return;
+            if(foodSpawnTimer <= 0) {
+                let newX = canvas.width + Math.random() * 50;
+                let safe = true;
+                for(let obs of obstacles) if(Math.abs(obs.x - newX) < 60) { safe = false; break; }
+                if(safe && foods.length < 4) foods.push({ x: newX, w: 18, h: 18 });
+                let foodDelay = 70 + Math.floor(Math.random() * 60) - Math.floor(gameSpeed * 1);
+                foodSpawnTimer = Math.max(45, foodDelay);
+            } else {
+                foodSpawnTimer--;
+            }
+        }
+        
+        // 生成金幣
+        function trySpawnCoin() {
+            if(coinSpawnTimer <= 0 && coinItems.length < 3) {
+                let newX = canvas.width + Math.random() * 70;
+                let safe = true;
+                for(let obs of obstacles) if(Math.abs(obs.x - newX) < 55) { safe = false; break; }
+                if(safe) {
+                    coinItems.push({ x: newX, w: 20, h: 20, y: groundBaseY - 35 - Math.random() * 40 });
+                    coinSpawnTimer = 130 + Math.random() * 110;
+                }
+            } else if(coinSpawnTimer > 0) {
+                coinSpawnTimer--;
+            }
+        }
+        
+        // 磁鐵效果：吸引金幣
+        function applyMagnetEffectToCoins() {
+            if(!isMagnetActive()) return;
+            for(let i = 0; i < coinItems.length; i++) {
+                const coin = coinItems[i];
+                const dx = (dinoX + DINO_W/2) - (coin.x + 10);
+                if(Math.abs(dx) < 180) {
+                    coin.x += 6;
+                }
+            }
+        }
+        
+        // 里程碑獎勵
+        let lastMilestone = 0;
+        const milestones = [100, 200, 300, 500, 700, 1000, 1500, 2000];
+        
+        // 顯示里程碑提示
+        function showMilestoneToast(scoreVal) {
+            showToast(`🎉 ${Math.floor(scoreVal)} 分達成！獲得 50 金幣 🎉`);
+            addCoins(50);
+        }
+        
+        // 檢查里程碑
+        function checkMilestone(currentScore) {
+            const floorScore = Math.floor(currentScore);
+            for(let m of milestones) {
+                if(floorScore >= m && lastMilestone < m) {
+                    lastMilestone = m;
+                    showMilestoneToast(m);
+                    break;
+                }
+            }
+        }
+        
+        // ==================== 音效（簡化版） ====================
+        let audioCtx = null;
+        let isMusicEnabled = true;
+        
+        // 初始化音效
+        function initAudio() { 
+            if(!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)(); 
+                if(audioCtx.state === 'suspended') audioCtx.resume();
+            }
+        }
+        
+        // 播放碰撞音效
+        function playHitSound() {
+            if(!isMusicEnabled || !audioCtx) return;
+            try {
+                const now = audioCtx.currentTime;
+                const gain = audioCtx.createGain();
+                gain.gain.value = 0.1;
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
+                const osc = audioCtx.createOscillator();
+                osc.type = 'triangle';
+                osc.frequency.value = 180;
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(now + 0.25);
+            } catch(e) {}
+        }
+        
+        // 播放收集音效
+        function playCollectSound() {
+            if(!isMusicEnabled || !audioCtx) return;
+            try {
+                const now = audioCtx.currentTime;
+                const gain = audioCtx.createGain();
+                gain.gain.value = 0.08;
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+                const osc = audioCtx.createOscillator();
+                osc.type = 'sine';
+                osc.frequency.value = 880;
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(now + 0.18);
+            } catch(e) {}
+        }
+        
+        // 播放金幣音效
+        function playCoinSound() {
+            if(!isMusicEnabled || !audioCtx) return;
+            try {
+                const now = audioCtx.currentTime;
+                const gain = audioCtx.createGain();
+                gain.gain.value = 0.07;
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+                const osc = audioCtx.createOscillator();
+                osc.type = 'sine';
+                osc.frequency.value = 1200;
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(now + 0.12);
+            } catch(e) {}
+        }
+        
+        // 播放遊戲結束音效
+        function playGameEndSound() {
+            if(!isMusicEnabled || !audioCtx) return;
+            try {
+                const now = audioCtx.currentTime;
+                const gain = audioCtx.createGain();
+                gain.gain.value = 0.12;
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.7);
+                const osc = audioCtx.createOscillator();
+                osc.type = 'sawtooth';
+                osc.frequency.value = 130;
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(now + 0.7);
+            } catch(e) {}
+        }
+        
+        // 切換音量
+        function toggleVolume() {
+            isMusicEnabled = !isMusicEnabled;
+            volumeBtn.innerHTML = isMusicEnabled ? "🔊" : "🔇";
+        }
+        
+        // ==================== 遊戲邏輯 ====================
+        // 更新遊戲邏輯（每幀執行）
+        function updateGameLogic() {
+            if(!isGameActive || !gameRunning) return;
+            
+            // 更新技能效果
+            updateActiveEffects();
+            applyMagnetEffectToCoins();
+            
+            // 更新恐龍物理
+            dinoVy += GRAVITY;
+            dinoY += dinoVy;
+            const groundLimit = getDinoGroundY();
+            if(dinoY >= groundLimit) { dinoY = groundLimit; dinoVy = 0; isJumping = false; }
+            if(dinoY < 0) { dinoY = 0; if(dinoVy < 0) dinoVy = 0; }
+            
+            // 加速
+            if(gameSpeed < maxGameSpeed) {
+                speedUpTimer++;
+                if(speedUpTimer >= 350) {
+                    gameSpeed = Math.min(maxGameSpeed, gameSpeed + 0.15);
+                    speedUpTimer = 0;
+                }
+            }
+            
+            // 生成物件
+            trySpawnCactus();
+            trySpawnFood();
+            trySpawnCoin();
+            
+            // 移動物件
+            for(let i=0;i<obstacles.length;i++) obstacles[i].x -= gameSpeed;
+            obstacles = obstacles.filter(o => o.x + OBSTACLE_W > 0);
+            if(currentMode === 'food') {
+                for(let i=0;i<foods.length;i++) foods[i].x -= gameSpeed;
+                foods = foods.filter(f => f.x + 18 > 0);
+            }
+            for(let i=0;i<coinItems.length;i++) coinItems[i].x -= gameSpeed;
+            coinItems = coinItems.filter(c => c.x + 20 > 0);
+            
+            // 碰撞檢測
+            const dinoRect = { x: dinoX, y: dinoY, w: DINO_W, h: DINO_H };
+            
+            // 仙人掌碰撞
+            for(let i=0;i<obstacles.length;i++) {
+                const obsY = groundBaseY - OBSTACLE_H;
+                if(dinoRect.x < obstacles[i].x+OBSTACLE_W && dinoRect.x+DINO_W > obstacles[i].x &&
+                   dinoRect.y < obsY+OBSTACLE_H && dinoRect.y+DINO_H > obsY) {
+                    
+                    if(!isInvincible()) {
+                        health = Math.max(0, health - DAMAGE);
+                        addCollisionEffect(obstacles[i].x, obsY);
+                        playHitSound();
+                    } else {
+                        addCollisionEffect(obstacles[i].x, obsY);
+                    }
+                    obstacles.splice(i,1);
+                    i--;
+                    if(health <= 0) gameOver();
+                }
+            }
+            
+            // 食物碰撞
+            if(currentMode === 'food') {
+                for(let i=0;i<foods.length;i++) {
+                    const foodY = groundBaseY - 18 - 4;
+                    if(dinoRect.x < foods[i].x+18 && dinoRect.x+DINO_W > foods[i].x &&
+                       dinoRect.y < foodY+18 && dinoRect.y+DINO_H > foodY) {
+                        health = Math.min(100, health + FOOD_HEAL);
+                        score += FOOD_SCORE;
+                        foods.splice(i,1);
+                        i--;
+                        playCollectSound();
+                    }
+                }
+            }
+            
+            // 金幣碰撞
+            for(let i=0;i<coinItems.length;i++) {
+                const coin = coinItems[i];
+                const coinY = coin.y || (groundBaseY - 35);
+                if(dinoRect.x < coin.x+20 && dinoRect.x+DINO_W > coin.x &&
+                   dinoRect.y < coinY+20 && dinoRect.y+DINO_H > coinY) {
+                    addCoins(10);
+                    addCoinEffect(coin.x, coinY);
+                    coinItems.splice(i,1);
+                    i--;
+                    playCoinSound();
+                }
+            }
+            
+            // 加分
+            let scoreIncrement = 0.22 + (gameSpeed / 95);
+            if(currentMode === 'classic') scoreIncrement *= 1.08;
+            score += scoreIncrement;
+            
+            // 更新時間、里程碑
+            updateTimeOfDay();
+            checkMilestone(score);
+            
+            // 遊戲結束檢查
+            if(health <= 0) gameOver();
+            updateUI();
+            if(gameRunning) saveBestScore();
+        }
+        
+        // 遊戲結束
+        function gameOver() {
+            if(!gameRunning) return;
+            gameRunning = false;
+            isGameActive = false;
+            saveBestScore();
+            playGameEndSound();
+            document.getElementById('gameRunningStatus').innerHTML = '💀 遊戲結束';
+        }
+        
+        // 完全重置遊戲
+        function fullGameReset() {
+            obstacles = [];
+            foods = [];
+            coinItems = [];
+            gameSpeed = 7;
+            cactusSpawnTimer = 12;
+            foodSpawnTimer = 18;
+            coinSpawnTimer = 30;
+            speedUpTimer = 0;
+            score = 0;
+            health = 100;
+            particles = [];
+            lastMilestone = 0;
+            timeOfDay = 0;
+            lastTimeOfDay = 0;
+            sessionJumps = 0;
+            
+            updateGroundCache();
+            resetDinoPhysics();
+            updateUI();
+            gameRunning = false;
+            isGameActive = false;
+            isPaused = false;
+            document.getElementById('gameRunningStatus').innerHTML = '⏳ 準備中';
+            const badge = document.getElementById('timeBadge');
+            if(badge) badge.innerHTML = '☀️ 白天';
+            
+            // 啟動裝備的技能效果
+            activateEquippedSkills();
+        }
+        
+        // 開始倒數
+        function startCountdown() {
+            if(countdownTimer) clearInterval(countdownTimer);
+            isCountdownActive = true;
+            countdownValue = 3;
+            gameRunning = false;
+            isGameActive = false;
+            
+            countdownTimer = setInterval(() => {
+                if(countdownValue > 1) {
+                    countdownValue--;
+                } else {
+                    clearInterval(countdownTimer);
+                    countdownTimer = null;
+                    isCountdownActive = false;
+                    gameRunning = true;
+                    isGameActive = true;
+                    document.getElementById('gameRunningStatus').innerHTML = '🏃‍♂️ 奔跑中';
+                    if(currentMode === 'food') document.getElementById('modeHint').innerHTML = '🍎 食物模式 (+5❤️)';
+                    else document.getElementById('modeHint').innerHTML = '🌵 經典模式 (無補血)';
+                }
+            }, 1000);
+        }
+        
+        // 暫停/繼續
+        function togglePause() {
+            if(!gameRunning || isCountdownActive || pauseCountdownActive) return;
+            
+            if(!isPaused) {
+                isPaused = true;
+                isGameActive = false;
+                document.getElementById('gameRunningStatus').innerHTML = '⏸️ 暫停中';
+                pauseBtn.innerHTML = '▶️ 繼續';
+            } else {
+                isPaused = false;
+                pauseCountdownActive = true;
+                pauseCountdownValue = 3;
+                document.getElementById('gameRunningStatus').innerHTML = '⏳ 倒數 3';
+                
+                if(pauseCountdownTimer) clearInterval(pauseCountdownTimer);
+                pauseCountdownTimer = setInterval(() => {
+                    if(pauseCountdownValue > 1) {
+                        pauseCountdownValue--;
+                        document.getElementById('gameRunningStatus').innerHTML = `⏳ 倒數 ${pauseCountdownValue}`;
+                    } else {
+                        clearInterval(pauseCountdownTimer);
+                        pauseCountdownTimer = null;
+                        pauseCountdownActive = false;
+                        isGameActive = true;
+                        document.getElementById('gameRunningStatus').innerHTML = '🏃‍♂️ 奔跑中';
+                        pauseBtn.innerHTML = '⏸️ 暫停';
+                    }
+                }, 1000);
+            }
+        }
+        
+        // 重新開始遊戲
+        function restartGame() {
+            if(countdownTimer) clearInterval(countdownTimer);
+            if(pauseCountdownTimer) clearInterval(pauseCountdownTimer);
+            isPaused = false;
+            pauseCountdownActive = false;
+            pauseBtn.innerHTML = '⏸️ 暫停';
+            fullGameReset();
+            startCountdown();
+        }
+        
+        // 返回模式選擇
+function exitToModeSelect() {
+    if(countdownTimer) clearInterval(countdownTimer);
+    if(pauseCountdownTimer) clearInterval(pauseCountdownTimer);
+    isGameActive = false;
+    gameRunning = false;
+    isCountdownActive = false;
+    isPaused = false;
+    modeSelectDiv.classList.remove('hidden');
+    gameScreenDiv.classList.add('hidden');
+    loadBestScores();
+    updateCoinDisplay();
+    updateQuestDisplay();
+    
+    // ★ 新增：隱藏手機跳躍按鈕
+    const mobileJumpArea = document.getElementById('mobileJumpArea');
+    if(mobileJumpArea) mobileJumpArea.style.display = 'none';
+}
+        
+        let jumpCooldown = false;
+        // 執行跳躍
+        function performJump() {
+            if(!isGameActive || !gameRunning || isCountdownActive || pauseCountdownActive || isPaused) return false;
+            if(jumpCooldown) return false;
+            const epsilon = 8;
+            const onGround = (dinoY + DINO_H >= groundBaseY - epsilon) && dinoVy >= -0.5;
+            if(onGround && !isJumping) {
+                dinoVy = JUMP_FORCE;
+                isJumping = true;
+                jumpCooldown = true;
+                setTimeout(() => { jumpCooldown = false; }, 80);
+                // 更新任務進度 - 跳躍次數
+                sessionJumps++;
+                updateQuestProgress('totalJumps', 1);
+                return true;
+            }
+            return false;
+        }
+        
+        // ==================== 繪圖函數 ====================
+        // 繪製背景
+        function drawBackground() {
+            let skyColor1, skyColor2, sunColor;
+            
+            if(timeOfDay === 0) {
+                skyColor1 = '#ffe8c5';
+                skyColor2 = '#f7e8c5';
+                sunColor = '#fff9c4';
+            } else if(timeOfDay === 1) {
+                skyColor1 = '#f7c87a';
+                skyColor2 = '#e5b66b';
+                sunColor = '#ffaa66';
+            } else {
+                skyColor1 = '#1a2a3a';
+                skyColor2 = '#0f1a25';
+                sunColor = '#cceeff';
+            }
+            
+            const grad = ctx.createLinearGradient(0,0,0,canvas.height);
+            grad.addColorStop(0, skyColor1);
+            grad.addColorStop(0.7, skyColor2);
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 太陽/月亮
+            if(timeOfDay !== 2) {
+                ctx.fillStyle = sunColor;
+                ctx.beginPath();
+                ctx.arc(canvas.width - 100, 70, 35, 0, Math.PI * 2);
+                ctx.fill();
+                if(timeOfDay === 1) {
+                    ctx.fillStyle = '#ff8844';
+                    ctx.beginPath();
+                    ctx.arc(canvas.width - 100, 70, 30, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            } else {
+                ctx.fillStyle = '#ddddee';
+                ctx.beginPath();
+                ctx.arc(canvas.width - 100, 70, 32, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#aaaacc';
+                ctx.beginPath();
+                ctx.arc(canvas.width - 88, 62, 8, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            // 遠山
+            ctx.fillStyle = timeOfDay === 2 ? '#2a3a3a' : '#c0aa76';
+            ctx.beginPath();
+            ctx.moveTo(0, groundBaseY - 48);
+            ctx.bezierCurveTo(350, groundBaseY - 78, 650, groundBaseY - 65, canvas.width, groundBaseY - 48);
+            ctx.lineTo(canvas.width, groundBaseY - 15);
+            ctx.lineTo(0, groundBaseY - 15);
+            ctx.fill();
+            
+            drawStars();
+        }
+        
+        // 繪製地面
+        function drawGround() {
+            ctx.fillStyle = timeOfDay === 2 ? '#6a5a4a' : '#b5834a';
+            ctx.fillRect(0, groundBaseY - 8, canvas.width, 10);
+            ctx.fillStyle = timeOfDay === 2 ? '#8a7a5a' : '#deae72';
+            ctx.fillRect(0, groundBaseY, canvas.width, 10);
+            ctx.beginPath();
+            ctx.strokeStyle = timeOfDay === 2 ? '#4a3a2a' : '#5c3d1e';
+            ctx.lineWidth = 2.5;
+            ctx.moveTo(0, groundBaseY);
+            ctx.lineTo(canvas.width, groundBaseY);
+            ctx.stroke();
+        }
+        
+        // 繪製恐龍
+        function drawDino() {
+            const skin = getCurrentSkin();
+            // 無敵閃爍效果
+            if(isInvincible() && (Math.floor(Date.now() / 80) % 2 === 0)) {
+                ctx.fillStyle = '#ffdd88';
+            } else {
+                ctx.fillStyle = skin.color1;
+            }
+            ctx.beginPath(); ctx.roundRect(dinoX, dinoY, DINO_W, DINO_H, 12); ctx.fill();
+            ctx.fillStyle = skin.color2;
+            ctx.beginPath(); ctx.roundRect(dinoX+8, dinoY+DINO_H*0.45, DINO_W-16, DINO_H*0.35, 8); ctx.fill();
+            ctx.fillStyle = '#3c8a3a';
+            for(let i=0;i<3;i++){ ctx.beginPath(); ctx.moveTo(dinoX+8+i*10, dinoY-6); ctx.lineTo(dinoX+4+i*10, dinoY+2); ctx.lineTo(dinoX+12+i*10, dinoY+2); ctx.fill(); }
+            ctx.fillStyle = skin.eyeColor; ctx.beginPath(); ctx.ellipse(dinoX+DINO_W-10, dinoY+16, 7, 8, 0, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#2f3120'; ctx.beginPath(); ctx.ellipse(dinoX+DINO_W-9, dinoY+15, 3.5, 4, 0, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(dinoX+DINO_W-8, dinoY+26, 4, 0.05, Math.PI - 0.05); ctx.stroke();
+        }
+        
+        // 繪製仙人掌
+        function drawCactus(obs){
+            let obsY = groundBaseY - OBSTACLE_H;
+            ctx.fillStyle = timeOfDay === 2 ? '#2a6a2a' : '#4aa84a';
+            ctx.beginPath(); ctx.roundRect(obs.x, obsY, OBSTACLE_W, OBSTACLE_H, 8); ctx.fill();
+            ctx.fillStyle = timeOfDay === 2 ? '#1a4a1a' : '#2e7a32';
+            ctx.fillRect(obs.x+6, obsY-8, 5, 12); ctx.fillRect(obs.x+16, obsY-5, 5, 10);
+            ctx.fillStyle = '#cf6530'; ctx.fillRect(obs.x+18, obsY+22, 5, 10);
+        }
+        
+        // 繪製食物
+        function drawFoodItem(f){
+            let foodY = groundBaseY - 18 - 4;
+            ctx.fillStyle = '#e34d2e'; ctx.beginPath(); ctx.ellipse(f.x+9, foodY+9, 9, 10, 0, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#6eac44'; ctx.beginPath(); ctx.moveTo(f.x+9, foodY+3); ctx.lineTo(f.x+13, foodY-4); ctx.lineTo(f.x+5, foodY-4); ctx.fill();
+        }
+        
+        // 繪製金幣
+        function drawCoins() {
+            for(let coin of coinItems) {
+                const coinY = coin.y || (groundBaseY - 35);
+                ctx.fillStyle = '#FFD700';
+                ctx.beginPath(); ctx.ellipse(coin.x+10, coinY+10, 10, 10, 0, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#FFAA00';
+                ctx.beginPath(); ctx.ellipse(coin.x+10, coinY+10, 7, 7, 0, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#FFD700';
+                ctx.font = 'bold 14px monospace';
+                ctx.fillText("💎", coin.x+4, coinY+14);
+            }
+        }
+        
+        // 繪製倒數
+        function drawCountdown() {
+            if(isCountdownActive) {
+                ctx.fillStyle = 'rgba(0,0,0,0.6)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.font = 'bold 85px "Courier New", monospace';
+                ctx.fillStyle = '#FFD966';
+                let text = countdownValue === 1 ? "GO!" : countdownValue.toString();
+                ctx.fillText(text, canvas.width/2 - (text === "GO!" ? 55 : 35), canvas.height/2 + 35);
+                ctx.font = '28px monospace';
+                ctx.fillStyle = '#f5e2a2';
+                ctx.fillText("準備倒數", canvas.width/2 - 70, canvas.height/2 + 110);
+            }
+            
+            if(pauseCountdownActive) {
+                ctx.fillStyle = 'rgba(0,0,0,0.6)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.font = 'bold 85px "Courier New", monospace';
+                ctx.fillStyle = '#88FFAA';
+                let text = pauseCountdownValue === 1 ? "GO!" : pauseCountdownValue.toString();
+                ctx.fillText(text, canvas.width/2 - (text === "GO!" ? 55 : 35), canvas.height/2 + 35);
+                ctx.font = '28px monospace';
+                ctx.fillStyle = '#aaffcc';
+                ctx.fillText("繼續遊戲", canvas.width/2 - 70, canvas.height/2 + 110);
+            }
+        }
+        
+        // 繪製遊戲結束訊息
+        function drawGameOverMessage() {
+            if(!gameRunning && !isGameActive && !isCountdownActive && !pauseCountdownActive) {
+                ctx.fillStyle = 'rgba(0,0,0,0.75)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.font = 'bold 38px monospace';
+                ctx.fillStyle = '#FFBB66';
+                ctx.fillText('💀 GAME OVER', canvas.width/2-160, canvas.height/2-25);
+                ctx.font = '20px monospace';
+                ctx.fillStyle = '#eeddaa';
+                ctx.fillText('點擊「重來」繼續冒險', canvas.width/2-140, canvas.height/2+55);
+            }
+        }
+        
+        // 主要渲染函數
+        function render() {
+            drawBackground();
+            drawClouds();
+            for(let obs of obstacles) drawCactus(obs);
+            if(currentMode === 'food') for(let f of foods) drawFoodItem(f);
+            drawCoins();
+            drawDino();
+            drawGround();
+            drawParticles();
+            drawCountdown();
+            drawGameOverMessage();
+        }
+        
+        // 更新地面緩存
+        function updateGroundCache() { groundBaseY = canvas.height - GROUND_HEIGHT; }
+        
+        // 主遊戲迴圈
+        function gameLoop() {
+            updateClouds();
+            updateParticles();
+            if(isGameActive && gameRunning && !isCountdownActive && !isPaused && !pauseCountdownActive) {
+                updateGameLogic();
+            }
+            render();
+            animationId = requestAnimationFrame(gameLoop);
+        }
+        
+        // 進入遊戲
+function enterGame() {
+    modeSelectDiv.classList.add('hidden');
+    gameScreenDiv.classList.remove('hidden');
+    fullGameReset();
+    startCountdown();
+    if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    else if(!audioCtx) initAudio();
+    
+    // ★ 新增：進入遊戲時顯示手機跳躍按鈕
+    const mobileJumpArea = document.getElementById('mobileJumpArea');
+    if(mobileJumpArea) mobileJumpArea.style.display = 'block';
+}
+        
+        // 設定模式
+        function setMode(mode) {
+            currentMode = mode;
+            if(mode === 'classic') {
+                classicCard.classList.add('active');
+                foodCard.classList.remove('active');
+            } else {
+                foodCard.classList.add('active');
+                classicCard.classList.remove('active');
+            }
+        }
+        
+        // 開啟造型商店
+        function openShop() {
+            modeSelectDiv.classList.add('hidden');
+            shopScreenDiv.classList.remove('hidden');
+            renderShop();
+            updateCoinDisplay();
+        }
+        
+        // 關閉造型商店
+        function closeShop() {
+            shopScreenDiv.classList.add('hidden');
+            modeSelectDiv.classList.remove('hidden');
+            updateCoinDisplay();
+        }
+        
+        // 開啟技能商店
+        function openSkillShop() {
+            modeSelectDiv.classList.add('hidden');
+            skillShopScreenDiv.classList.remove('hidden');
+            renderSkillShop();
+            updateCoinDisplay();
+        }
+        
+        // 關閉技能商店
+        function closeSkillShop() {
+            skillShopScreenDiv.classList.add('hidden');
+            modeSelectDiv.classList.remove('hidden');
+            updateCoinDisplay();
+        }
+        
+        // ==================== 事件綁定 ====================
+        classicCard.addEventListener('click', () => setMode('classic')); // 經典模式點擊
+        foodCard.addEventListener('click', () => setMode('food')); // 食物模式點擊
+        enterBtn.addEventListener('click', enterGame); // 開始遊戲按鈕
+        openShopBtn.addEventListener('click', openShop); // 開啟造型商店
+        openSkillShopBtn.addEventListener('click', openSkillShop); // 開啟技能商店
+        closeShopBtn.addEventListener('click', closeShop); // 關閉造型商店
+        closeSkillShopBtn.addEventListener('click', closeSkillShop); // 關閉技能商店
+        backBtn.addEventListener('click', exitToModeSelect); // 返回選單
+        pauseBtn.addEventListener('click', togglePause); // 暫停按鈕
+        volumeBtn.addEventListener('click', toggleVolume); // 音量按鈕
+        restartGameBtn.addEventListener('click', () => { // 重來按鈕
+            if(countdownTimer) clearInterval(countdownTimer);
+            if(pauseCountdownTimer) clearInterval(pauseCountdownTimer);
+            fullGameReset();
+            startCountdown();
+        });
+        
+        // 跳躍處理函數
+        const handleJump = (e) => { e.preventDefault(); performJump(); };
+        
+        // 綁定畫布點擊跳躍
+        canvas.addEventListener('click', handleJump);
+        canvas.addEventListener('touchstart', handleJump, { passive: false });
+        
+        // 綁定手機大型跳躍按鈕
+        const mobileLargeBtn = document.getElementById('mobileJumpLargeBtn');
+        if(mobileLargeBtn) {
+            mobileLargeBtn.addEventListener('click', handleJump);
+            mobileLargeBtn.addEventListener('touchstart', handleJump, { passive: false });
+        }
+        
+        // 鍵盤事件
+        window.addEventListener('keydown', (e) => {
+            if(e.code === 'Space' || e.code === 'ArrowUp') { e.preventDefault(); performJump(); } // 空格/上鍵跳躍
+            if(e.code === 'KeyP') { e.preventDefault(); togglePause(); } // P鍵暫停
+        });
+        
+        // 圓角矩形輔助函數
+        if (!CanvasRenderingContext2D.prototype.roundRect) {
+            CanvasRenderingContext2D.prototype.roundRect = function(x,y,w,h,r){
+                if(w<2*r) r=w/2; if(h<2*r) r=h/2;
+                this.moveTo(x+r,y); this.lineTo(x+w-r,y); this.quadraticCurveTo(x+w,y,x+w,y+r);
+                this.lineTo(x+w,y+h-r); this.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+                this.lineTo(x+r,y+h); this.quadraticCurveTo(x,y+h,x,y+h-r);
+                this.lineTo(x,y+r); this.quadraticCurveTo(x,y,x+r,y);
+                return this;
+            };
+        }
+        
+        // 初始化所有系統
+        loadSkinData(); // 載入造型數據
+        loadSkillData(); // 載入技能數據
+        loadBestScores(); // 載入最高分
+        loadQuestData(); // 載入任務數據
+        setMode('food'); // 預設食物模式
+        updateGroundCache(); // 更新地面緩存
+        updateCoinDisplay(); // 更新金幣顯示
+        updateSkillBadge(); // 更新技能標籤
+        gameLoop(); // 啟動遊戲迴圈
+        initAudio(); // 初始化音效
+        
+        // ★ 最終說明：手機跳躍按鈕在 CSS 中設定為 display: block，所以進入遊戲時就會立即顯示 ★
+        // ★ 不需要等待倒數結束，玩家可以立即看到按鈕並準備點擊 ★
+    })();
+</script>
+</body>
+</html>
