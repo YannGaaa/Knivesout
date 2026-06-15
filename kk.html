@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ESP - 豆包助手</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="https://unpkg.com/element-ui@2.15.7/lib/theme-chalk/index.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6/dist/vue.min.js"></script>
+    <script src="https://unpkg.com/element-ui@2.15.7/lib/index.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/vant@2.13/lib/index.css" />
+    <script src="https://unpkg.com/vant@2.13/lib/vant.min.js"></script>
+    <script src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+    <style>
+        @font-face { font-family: UIFonts; src: url("https://game.gtimg.cn/images/gp/cp/a20250826cly/all.ttf"); }
+        * { padding: 0; margin: 0; box-sizing: border-box; }
+        body { font-family: UIFonts, system-ui, -apple-system, sans-serif; background: transparent; overflow: hidden; }
+        .ayimgui { position: fixed; width: 400px; height: 520px; top: calc(50% - 260px); left: calc(50% - 200px); z-index: 999; background-color: rgba(240, 240, 240, 0.95); overflow: hidden; user-select: none; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3); border: 1px solid #d1d1d1; border-radius: 12px; backdrop-filter: blur(0px); transition: all 0.1s ease; }
+        .onlyTitle { height: 28px !important; overflow: hidden; }
+        .aytitle { background-color: rgba(209, 209, 209, 0.8); height: 28px; line-height: 28px; cursor: move; display: flex; align-items: center; padding: 0 8px; }
+        .aytitle .title-toggle { cursor: pointer; font-size: 18px; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; color: #333; }
+        .aytitle .title-text { font-size: 14px; flex: 1; color: #333; font-weight: 500; }
+        .aytitle .titleClose { color: #333; cursor: pointer; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+        .aytitle .titleClose:hover { color: #e94560; }
+        .aybody { padding: 12px; height: calc(100% - 28px - 12px - 12px); overflow-y: auto; font-size: 13px; color: #333; }
+        .aytab { width: 100%; height: 32px; display: flex; border-bottom: 2px solid #d1d1d1; margin-bottom: 12px; }
+        .aytab span { padding: 0 16px; height: 100%; display: flex; align-items: center; justify-content: center; background-color: #e0e0e0; color: #555; font-size: 13px; font-weight: 500; margin-right: 6px; border-radius: 8px 8px 0 0; cursor: pointer; }
+        .aytab span.active { background-color: #B8D1F2; color: #333; }
+        .aytext { width: 100%; margin-bottom: 12px; display: flex; flex-direction: column; color: #333; }
+        .option-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #eee; }
+        .option-label { font-size: 13px; color: #333; font-weight: 500; }
+        .radio-group { display: flex; background: #f0f0f0; border-radius: 8px; padding: 2px; }
+        .radio-option { padding: 5px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; color: #666; transition: 0.2s; }
+        .radio-option.active { background: #23B574; color: white; }
+        .button-group { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+        .el-button { font-size: 12px; padding: 6px 12px; color: #333; background-color: #B8D1F2; border: none; border-radius: 6px; }
+        .el-button--primary { background-color: #23B574; color: white; }
+        .info-text { font-size: 11px; color: #999; margin-top: 8px; text-align: center; }
+        .slider-label { font-size: 12px; color: #333; margin-right: 10px; }
+        input[type="range"] { width: 160px; height: 4px; -webkit-appearance: none; background: #ddd; border-radius: 2px; }
+        input[type="range"]:focus { outline: none; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #23B574; cursor: pointer; }
+        .address-list { background: #f5f5f5; border-radius: 8px; padding: 8px; margin-top: 8px; }
+        .address-item { display: flex; justify-content: space-between; padding: 4px 0; font-size: 11px; }
+        .address-name { color: #666; } .address-value { color: #23B574; font-family: monospace; }
+        .status-indicator { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+        .status-active { background: #23B574; box-shadow: 0 0 4px #23B574; } .status-inactive { background: #dc3545; }
+        .aybody::-webkit-scrollbar { width: 4px; } .aybody::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; } .aybody::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+        .resize-triangle { position: absolute; bottom: 0; right: 0; width: 0; height: 0; border-style: solid; border-width: 0 0 16px 16px; border-color: transparent transparent rgba(0, 0, 0, 0.2) transparent; cursor: nwse-resize; z-index: 1000; }
+        .scale-indicator { position: absolute; bottom: 4px; left: 8px; background: rgba(0, 0, 0, 0.5); color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; opacity: 0; transition: opacity 0.2s; pointer-events: none; }
+        .ayimgui.resizing .scale-indicator { opacity: 1; }
+        canvas#cav { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999; }
+    </style>
+</head>
+<body>
+    <canvas id="cav" width="100%" height="100%" style="width:100%;height:100%;position:fixed;top:0;left:0;pointer-events:none;z-index:999;"></canvas>
+    <div id="app">
+        <div :class="['ayimgui', !ifshow ? 'onlyTitle' : '']" ref="menuMain">
+            <div class="aytitle" @touchstart="titleTouchStart" @touchmove="titleTouchMove">
+                <i class="title-toggle" :class="ifshow ? 'el-icon-caret-bottom' : 'el-icon-caret-top'" @click="ifshow = !ifshow"></i>
+                <span class="title-text">豆包助手</span>
+                <i class="titleClose el-icon el-icon-close" @click="closeimgui"></i>
+            </div>
+            <div class="aybody" v-show="ifshow">
+                <div class="aytab">
+                    <span @click="changeTab('status')" :class="{active: tabValue==='status'}">系统状态</span>
+                    <span @click="changeTab('aimbot')" :class="{active: tabValue==='aimbot'}">自瞄设定</span>
+                    <span @click="changeTab('memory')" :class="{active: tabValue==='memory'}">内存功能</span>
+                    <span @click="changeTab('settings')" :class="{active: tabValue==='settings'}">显示设置</span>
+                </div>
+                <div v-show="tabValue==='status'">
+                    <div class="option-row"><div class="option-label"><span :class="espStatus ? 'status-active status-indicator' : 'status-inactive status-indicator'"></span>{{ espStatus ? '运行中' : '已停止' }}</div><div class="option-label"><span :style="{color: addressesSaved ? '#23B574' : '#dc3545'}">{{ addressesSaved ? '地址已保存' : '地址未保存' }}</span></div></div>
+                    <div class="aytext"><p style="font-weight:bold; margin-bottom:6px;">保存的地址</p><div class="address-list"><div class="address-item"><span class="address-name">人物数组基址:</span><span class="address-value">0x{{ playerArrayBase.toString(16).toUpperCase() }}</span></div><div class="address-item"><span class="address-name">本地玩家地址:</span><span class="address-value">0x{{ localPlayerAddr.toString(16).toUpperCase() }}</span></div><div class="address-item"><span class="address-name">视图矩阵地址:</span><span class="address-value">0x{{ viewMatrixAddr.toString(16).toUpperCase() }}</span></div></div></div>
+                    <div class="info-text">使用於荒野行动</div>
+                    <div class="button-group"><el-button @click="startESP" type="primary" size="small">启动ESP</el-button><el-button @click="stopESP" size="small">停止</el-button><el-button @click="rescanAddresses" size="small">重新扫描</el-button></div>
+                </div>
+                <div v-show="tabValue==='aimbot'">
+                    <div class="option-row"><div class="option-label">自瞄开关</div><el-switch v-model="aimbotEnabled" @change="toggleAimbot"></el-switch></div>
+                    <div class="option-row"><div class="option-label">瞄准部位</div><div class="radio-group"><div :class="aimPart==='head' ? 'radio-option active' : 'radio-option'" @click="setAimPart('head')">头部(32)</div><div :class="aimPart==='chest' ? 'radio-option active' : 'radio-option'" @click="setAimPart('chest')">胸部(1)</div><div :class="aimPart==='center' ? 'radio-option active' : 'radio-option'" @click="setAimPart('center')">方框中心</div></div></div>
+                    <div class="option-row"><div class="option-label">开火自瞄</div><el-switch v-model="fireCheckEnabled" @change="setFireCheckEnabled"></el-switch></div>
+                    <div class="option-row"><div class="option-label">瞄准FOV</div><div style="display:flex; align-items:center;"><span class="slider-label">{{ aimbotFov }}px</span><input type="range" v-model="aimbotFov" min="20" max="300" step="5" @change="updateFov"></div></div>
+                    <div class="option-row"><div class="option-label">平滑度</div><div style="display:flex; align-items:center;"><span class="slider-label">{{ aimSmoothness }}</span><input type="range" v-model="aimSmoothness" min="0" max="0.95" step="0.05" @change="updateSmooth"></div></div>
+                    <div class="option-row"><div class="option-label">瞄准速度</div><div style="display:flex; align-items:center;"><span class="slider-label">{{ aimSpeed }}</span><input type="range" v-model="aimSpeed" min="0.1" max="2.5" step="0.1" @change="updateAimSpeed"></div></div>
+                    <div class="option-row"><div class="option-label">预判强度 (0=关闭)</div><div style="display:flex; align-items:center;"><span class="slider-label">{{ predictStrength }}</span><input type="range" v-model="predictStrength" min="0" max="1" step="0.05" @change="updatePredictStrength"></div></div>
+                    <div class="option-row"><div class="option-label">子弹速度 (m/s)</div><div style="display:flex; align-items:center;"><span class="slider-label">{{ bulletSpeed }}</span><input type="range" v-model="bulletSpeed" min="400" max="1200" step="50" @change="updateBulletSpeed"></div></div>
+                    <div class="option-row"><div class="option-label">最小自瞄距离(m)</div><div style="display:flex; align-items:center;"><span class="slider-label">{{ minAimDist }}m</span><input type="range" v-model="minAimDist" min="0" max="20" step="0.5" @change="updateMinDist"></div></div>
+                    <div class="option-row"><div class="option-label">最大自瞄距离(m)</div><div style="display:flex; align-items:center;"><span class="slider-label">{{ maxAimDist }}m</span><input type="range" v-model="maxAimDist" min="50" max="600" step="50" @change="updateMaxDist"></div></div>
+                    <div class="info-text">弥赛亚引擎骨骼</div>
+                </div>
+                <div v-show="tabValue==='memory'">
+                    <div class="aytext"><p style="font-weight:bold;">特殊功能指针修改</p></div>
+                    <div class="mem-card" style="background:#e9ecef; border-radius:12px; padding:12px;"><div class="option-row"><div class="option-label">瞬击</div></div><div style="background:#f8f9fa; padding:8px 12px; border-radius:8px; margin:8px 0;"><div style="font-size:12px; color:#495057;">当前内存值 (F64)</div><div style="display:flex; justify-content:space-between; align-items:baseline;"><span class="mem-value" style="font-size:18px; font-weight:bold; color:#1a8c5a;">{{ currentMemValue !== null ? currentMemValue.toFixed(6) : '???' }}</span></div></div><div class="button-group" style="margin-top:12px;"><el-button @click="manualReadMemory" size="small">读取当前值</el-button><el-button @click="manualWriteMemory(0.5)" size="small">修改为 0.5</el-button><el-button @click="manualWriteMemory(0.1)" size="small">恢复 0.1</el-button></div></div>
+                    <div class="info-text" style="margin-top:12px;">* 确保游戏进程Game已附加，指针链自动解析</div>
+                </div>
+                <div v-show="tabValue==='settings'">
+                    <div class="option-row"><div class="option-label">方框风格</div><div class="radio-group"><div :class="boxStyle==='corner' ? 'radio-option active' : 'radio-option'" @click="setBoxStyle('corner')">角框</div><div :class="boxStyle==='rectangle' ? 'radio-option active' : 'radio-option'" @click="setBoxStyle('rectangle')">矩形</div><div :class="boxStyle==='rounded' ? 'radio-option active' : 'radio-option'" @click="setBoxStyle('rounded')">圆角</div><div :class="boxStyle==='filled' ? 'radio-option active' : 'radio-option'" @click="setBoxStyle('filled')">填充</div></div></div>
+                    <div class="option-row"><div class="option-label">FPS 限制</div><div class="radio-group"><div :class="fpsLimit===45 ? 'radio-option active' : 'radio-option'" @click="setFPSLimit(45)">45 FPS</div><div :class="fpsLimit===60 ? 'radio-option active' : 'radio-option'" @click="setFPSLimit(60)">60 FPS</div><div :class="fpsLimit===90 ? 'radio-option active' : 'radio-option'" @click="setFPSLimit(90)">90 FPS</div></div></div>
+                    <div class="option-row"><div class="option-label">显示方框</div><el-switch v-model="showBox" @change="toggleBox"></el-switch></div>
+                    <div class="option-row"><div class="option-label">射线</div><el-switch v-model="showRay" @change="toggleRay"></el-switch></div>
+                    <div class="option-row"><div class="option-label">显示骨骼</div><el-switch v-model="showSkeleton" @change="toggleSkeleton"></el-switch></div>
+                    <div class="option-row"><div class="option-label">直播模式</div><el-switch v-model="liveModeEnabled" @change="toggleLiveMode"></el-switch></div>
+                </div>
+            </div>
+            <div class="resize-triangle" v-show="ifshow" @touchstart="resizeTouchStart" @touchmove="resizeTouchMove"></div>
+            <div class="scale-indicator" id="scaleIndicator">100%</div>
+        </div>
+    </div>
+
+<script>
+setButtonImage('https://cdn.phototourl.com/free/2026-05-16-4d52054c-b493-441f-9eb6-a166da97c9e1.jpg');
+if(typeof $ == 'undefined') vant.Toast.fail("网络异常无法访问百度CDN!");
+
+const PTR_OFFSETS = {
+    NEW_ARRAY_ROOT: 0x6B71188, NEW_ARRAY_OFFSET1: 0x18, NEW_ARRAY_STEP: 0x8,
+    NEW_POS_OFFSET1: 0xC8, NEW_POS_OFFSET2: 0x198, NEW_POS_OFFSET3: 0x70,
+    ENTITY_TYPE_OFFSET: 0x188, BONE_PTR_OFFSET: 0xA8, BONE_STRUCT_OFFSET: 0x10,
+    BONE_FIRST_OFFSET: 0xA0, BONE_POS_OFFSET: 0x54, BONE_SCALE_OFFSET: 0x70, BONE_SIZE: 0xA0,
+    LOCAL_PLAYER_LEVEL3: 0x6C8B5D8, LOCAL_PLAYER_PTR: 0x6C48218, LOCAL_PLAYER_OFF: 0x150,
+    VIEW_MATRIX_PTR: 0x6B7EA78, VIEW_MATRIX_OFF: 0x3B8,
+    WEAPON_STEP2_OFF: 0x138, WEAPON_BASE_OFF: 0x68, WEAPON_ANGLE_BASE_OFF: 0x1C,
+    HIP_TARGET_OFF: 0x230, SCOPED_TARGET_OFF: 0x170, SCOPED_BASE_OFF: 0x130,
+    SPECIAL_PTR1: 0x6BAC818, SPECIAL_PTR2_OFF: 0x8, SPECIAL_PTR3_OFF: 0xE0, SPECIAL_TARGET_OFF: 0x10,
+    LOCAL_POS_X_OFF: 0x7C, LOCAL_POS_Y_OFF: 0x80, LOCAL_POS_Z_OFF: 0x84, LOCAL_FIRE_OFF: 0x5C,
+    CURRENT_DIR_X_OFF: 0x0, CURRENT_DIR_Y_OFF: 0x4, CURRENT_DIR_Z_OFF: 0x8
+};
+
+class Vec2 { constructor(x, y) { this.x = x; this.y = y; } }
+class Vec3 { constructor(x, y, z) { this.x = x; this.y = y; this.z = z; } }
+
+// 新矩陣：只讀 11 個值
+function WorldToScreen2(Pos, matrix, sWidth, sHeight) {
+    let view = matrix[7] * Pos.x + matrix[8] * Pos.y + matrix[9] * Pos.z + matrix[10];
+    if (view >= 0.01) view = 1.0 / view;
+    let xxx = matrix[0] * Pos.x + matrix[1] * Pos.z + matrix[2];
+    let yyy = matrix[3] * Pos.x + matrix[4] * Pos.y + matrix[5] * Pos.z + matrix[6];
+    xxx = xxx * view; yyy = yyy * view;
+    return new Vec2((sWidth / 2) + xxx * (sWidth / 2), (sHeight / 2) - yyy * (sHeight / 2));
+}
+
+function Distance2D(a, b) { let dx = a.x - b.x, dy = a.y - b.y; return Math.sqrt(dx*dx + dy*dy); }
+function Distance3D(a, b) { let dx = a.x - b.x, dy = a.y - b.y, dz = a.z - b.z; return Math.sqrt(dx*dx + dy*dy + dz*dz); }
+
+function calcDirectionVector(localPos, targetPos, isScoped) {
+    let dx = targetPos.x - localPos.x, dy = targetPos.y - localPos.y, dz = targetPos.z - localPos.z;
+    let len = Math.hypot(dx, dy, dz);
+    if (len < 0.001) return new Vec3(0, 0, 2.5);
+    let nx = (dx / len) * 2.5, ny = (dy / len) * 2.5, nz = (dz / len) * 2.5;
+    if (isScoped) ny = Math.max(-2.493, Math.min(2.493, ny));
+    else ny = Math.max(-2.5, Math.min(2.5, ny));
+    return new Vec3(Math.max(-2.5, Math.min(2.5, nx)), ny, Math.max(-2.5, Math.min(2.5, nz)));
+}
+
+class Draw {
+    constructor(canvas, sWidth, sHeight, iosScale) { this.ctx = canvas.getContext("2d"); this.sWidth = sWidth; this.sHeight = sHeight; this.iosScale = iosScale; }
+    Clear() { this.ctx.clearRect(0, 0, this.sWidth, this.sHeight); }
+    Line(x1, y1, x2, y2, color, lw) { color = color || "#05ff05"; lw = lw || 1; this.ctx.beginPath(); this.ctx.strokeStyle = color; this.ctx.moveTo(x1, y1); this.ctx.lineTo(x2, y2); this.ctx.lineWidth = this.iosScale * lw; this.ctx.stroke(); }
+    Circle(x, y, r, color, isFill, lw) { r = (r || 20) * this.iosScale; color = color || "#00ff00"; lw = lw || 1.5; this.ctx.beginPath(); this.ctx.lineWidth = this.iosScale * lw; this.ctx.strokeStyle = color; this.ctx.fillStyle = color; this.ctx.arc(x, y, r, 0, 2 * Math.PI); if (isFill) this.ctx.fill(); else this.ctx.stroke(); }
+    Rect(x, y, w, h, color, isFill, lw) { lw = lw || 1; this.ctx.beginPath(); this.ctx.lineWidth = this.iosScale * lw; this.ctx.strokeStyle = color; this.ctx.fillStyle = color; if (isFill) this.ctx.fillRect(x, y, w, h); else this.ctx.strokeRect(x, y, w, h); }
+    Text(text, x, y, size, color, isFill) { size = (size || 10) * this.iosScale; color = color || "red"; this.ctx.textAlign = "center"; this.ctx.fillStyle = color; this.ctx.strokeStyle = color; this.ctx.font = size + "px UIFonts, Arial"; if (isFill) this.ctx.fillText(text, x, y + size); else this.ctx.strokeText(text, x, y + size); }
+}
+
+function drawCornerESP(D, x, y, w, h, color, sf, t) { sf = sf || 0.2; t = t || 1; const lw = w * sf, lh = h * sf; D.Line(x, y, x + lw, y, color, t); D.Line(x, y, x, y + lh, color, t); D.Line(x + w - lw, y, x + w, y, color, t); D.Line(x + w, y, x + w, y + lh, color, t); D.Line(x, y + h, x + lw, y + h, color, t); D.Line(x, y + h - lh, x, y + h, color, t); D.Line(x + w - lw, y + h, x + w, y + h, color, t); D.Line(x + w, y + h - lh, x + w, y + h, color, t); }
+function drawRoundedBox(D, x, y, w, h, color, t) { t = t || 1; const r = Math.min(w, h) * 0.1; D.ctx.beginPath(); D.ctx.lineWidth = D.iosScale * t; D.ctx.strokeStyle = color; D.ctx.roundRect(x, y, w, h, r); D.ctx.stroke(); }
+CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) { if (w < 2 * r) r = w / 2; if (h < 2 * r) r = h / 2; this.moveTo(x + r, y); this.lineTo(x + w - r, y); this.quadraticCurveTo(x + w, y, x + w, y + r); this.lineTo(x + w, y + h - r); this.quadraticCurveTo(x + w, y + h, x + w - r, y + h); this.lineTo(x + r, y + h); this.quadraticCurveTo(x, y + h, x, y + h - r); this.lineTo(x, y + r); this.quadraticCurveTo(x, y, x + r, y); return this; };
+
+class ESPCore {
+    constructor() {
+        this.baseAddr = Number(h5gg.getRangesList('Game')[0].start);
+        this.iosScale = window.devicePixelRatio;
+        this.sWidth = window.screen.width * this.iosScale;
+        this.sHeight = window.screen.height * this.iosScale;
+        this.ESPCanvas = null;
+        this.EntityArray = [];
+        this.cachedStepB = undefined;
+        this.isRendering = false;
+        this.aimPart = "center"; this.boxStyle = "corner"; this.fpsLimit = 60;
+        this.aimbotEnabled = false; this.aimbotFov = 100; this.aimSmoothness = 0; this.aimSpeed = 0.5;
+        this.fireCheckEnabled = true; this.minAimDistance = 3.5; this.maxAimDistance = 600;
+        this.predictStrength = 0.5; this.bulletSpeed = 800;
+        this.lastWriteTime = 0; this.writeCooldown = 16.6;
+        this.lastPositions = new Map();
+        this.lastEntityListUpdate = 0; this.entityListUpdateInterval = 2000;
+        this.showSkeleton = false; this.showBox = true; this.showRay = false;
+        this._smoothDir = null;
+        this.savedAddresses = { playerArrayBase: 0, localPlayer: 0, viewMatrix: 0, isSaved: false };
+        this._matrix = new Float32Array(11);
+        setTimeout(() => { if (!this.savedAddresses.isSaved) this.saveAddresses(); }, 100);
+        this.init();
+    }
+
+    init() { this.initializeScreen(); this.initializeH5GG(); this.updateEntityList(); this.startRendering(); }
+    initializeScreen() {
+        if (Math.abs(window.orientation) === 90) { this.sWidth = window.screen.height * this.iosScale; this.sHeight = window.screen.width * this.iosScale; }
+        this.ESPCanvas = document.createElement('canvas'); this.ESPCanvas.width = this.sWidth; this.ESPCanvas.height = this.sHeight;
+        this.ESPCanvas.style.cssText = "height:100%;width:100%;pointer-events:none;z-index:999;position:fixed;top:0px;left:0px;";
+        document.documentElement.insertBefore(this.ESPCanvas, document.documentElement.firstChild);
+    }
+    initializeH5GG() { if (typeof setWindowRect !== 'undefined') { setWindowRect(0, 0, this.sWidth / this.iosScale, this.sHeight / this.iosScale); setWindowTouch(false); } }
+
+    updateEntityList() {
+        const level1 = this.readPointer(this.baseAddr + PTR_OFFSETS.NEW_ARRAY_ROOT);
+        if (this.isNull(level1)) { this.EntityArray = []; return; }
+        const level2 = this.readPointer(level1 + PTR_OFFSETS.NEW_ARRAY_OFFSET1);
+        if (this.isNull(level2)) { this.EntityArray = []; return; }
+        const localPlayerLevel3 = this.readPointer(this.baseAddr + PTR_OFFSETS.LOCAL_PLAYER_LEVEL3);
+        const newEntityArray = []; const seenAddresses = new Set();
+        for (let i = 0; i < 300; i++) {
+            const level3 = this.readPointer(level2 + (i * PTR_OFFSETS.NEW_ARRAY_STEP));
+            if (this.isNull(level3)) break; if (level3 === localPlayerLevel3) continue; if (seenAddresses.has(level3)) continue;
+            const level4 = this.readPointer(level3 + PTR_OFFSETS.NEW_POS_OFFSET1);
+            if (this.isNull(level4)) continue;
+            const entityType = this.readFloat(level4 + PTR_OFFSETS.ENTITY_TYPE_OFFSET);
+            if (!((entityType >= -1.07 && entityType <= -1.06) || (entityType >= -1.016 && entityType <= -1.014))) continue;
+            const level5 = this.readPointer(level4 + PTR_OFFSETS.NEW_POS_OFFSET2);
+            if (this.isNull(level5)) continue;
+            const bDead = this.readInt(level5 + 0xA0); if (bDead !== 1065353216) continue;
+            const andVal = this.readInt(level5 + 0xA8); if (andVal === -1 || andVal === 4294967295) continue;
+            seenAddresses.add(level3);
+            const x = this.readFloat(level5 + PTR_OFFSETS.NEW_POS_OFFSET3), y = this.readFloat(level5 + PTR_OFFSETS.NEW_POS_OFFSET3 + 4), z = this.readFloat(level5 + PTR_OFFSETS.NEW_POS_OFFSET3 + 8);
+            if (x === 0 && y === 0 && z === 0) continue; if (Math.abs(x) > 500000) continue;
+            newEntityArray.push({ address: level5, level4: level4, index: i, cachedBonePtrs: null, cachedHeadPos: null, cachedChestPos: null });
+        }
+        this.EntityArray = newEntityArray;
+    }
+
+    getLocalPlayerData() {
+        if (!this.savedAddresses.isSaved || this.savedAddresses.localPlayer === 0) return { position: new Vec3(0, 0, 0), pointer: 0 };
+        return { position: new Vec3(this.readFloat(this.savedAddresses.localPlayer + PTR_OFFSETS.LOCAL_POS_X_OFF), this.readFloat(this.savedAddresses.localPlayer + PTR_OFFSETS.LOCAL_POS_Y_OFF), this.readFloat(this.savedAddresses.localPlayer + PTR_OFFSETS.LOCAL_POS_Z_OFF)), pointer: this.savedAddresses.localPlayer };
+    }
+
+    // 只讀 11 個矩陣值
+    updateMatrix() {
+        const addr = this.savedAddresses.viewMatrix;
+        if (!addr) return;
+        this._matrix[0] = this.readFloat(addr);
+        this._matrix[1] = this.readFloat(addr + 8);
+        this._matrix[2] = this.readFloat(addr + 12);
+        this._matrix[3] = this.readFloat(addr + 16);
+        this._matrix[4] = this.readFloat(addr + 20);
+        this._matrix[5] = this.readFloat(addr + 24);
+        this._matrix[6] = this.readFloat(addr + 28);
+        this._matrix[7] = this.readFloat(addr + 48);
+        this._matrix[8] = this.readFloat(addr + 52);
+        this._matrix[9] = this.readFloat(addr + 56);
+        this._matrix[10] = this.readFloat(addr + 60);
+    }
+
+    saveAddresses() {
+        const level1 = this.readPointer(this.baseAddr + PTR_OFFSETS.NEW_ARRAY_ROOT);
+        if (this.isNull(level1)) return false;
+        const arrayBase = this.readPointer(level1 + PTR_OFFSETS.NEW_ARRAY_OFFSET1);
+        if (this.isNull(arrayBase)) return false;
+        this.savedAddresses.playerArrayBase = arrayBase;
+        try { let stepA = this.readPointer(this.baseAddr + PTR_OFFSETS.LOCAL_PLAYER_PTR); this.savedAddresses.localPlayer = this.readPointer(stepA + PTR_OFFSETS.LOCAL_PLAYER_OFF); } catch (e) { this.savedAddresses.localPlayer = 0; }
+        try { let matrixPtr = this.readPointer(this.baseAddr + PTR_OFFSETS.VIEW_MATRIX_PTR); this.savedAddresses.viewMatrix = matrixPtr + PTR_OFFSETS.VIEW_MATRIX_OFF; } catch (e) { this.savedAddresses.viewMatrix = 0; }
+        this.savedAddresses.isSaved = true; return true;
+    }
+
+    getViewPointers() {
+        try {
+            if (this.cachedStepA === undefined) this.cachedStepA = this.readPointer(this.baseAddr + PTR_OFFSETS.LOCAL_PLAYER_PTR);
+            if (this.cachedStepA === 0 || this.cachedStepA < this.baseAddr) return null;
+            if (this.cachedStepB === undefined) this.cachedStepB = this.readPointer(this.cachedStepA + PTR_OFFSETS.WEAPON_STEP2_OFF);
+            if (this.cachedStepB === 0 || this.cachedStepB < this.baseAddr) return null;
+            let currentBase = this.readPointer(this.cachedStepB + PTR_OFFSETS.WEAPON_BASE_OFF);
+            if (currentBase === 0 || currentBase < this.baseAddr) return null;
+            let angleBase = this.readPointer(this.cachedStepA + PTR_OFFSETS.WEAPON_ANGLE_BASE_OFF);
+            if (angleBase === 0 || angleBase < this.baseAddr) return null;
+            let scopeMode = this.readInt(this.cachedStepA + 0x130);
+            return { base: currentBase, angleBase, scopeMode };
+        } catch(e) { return null; }
+    }
+
+    // 完全保留你的 writeDirectionSmart
+    writeDirectionSmart(dirX, dirY, dirZ, ptrs) {
+        const now = Date.now();
+        const shouldWriteTarget = (now - this.lastWriteTime >= this.writeCooldown);
+        try {
+            if (!ptrs || !ptrs.base) return false;
+            let currentMode = ptrs.scopeMode;
+            let targetOffset, yMin, yMax, canWrite = true, isScoped = false;
+            if (currentMode === 2 || currentMode === 4) {
+                let checkValue = this.readFloat(ptrs.base + PTR_OFFSETS.SCOPED_BASE_OFF);
+                if (checkValue < 4.91 || checkValue > 40) return true;
+                targetOffset = PTR_OFFSETS.SCOPED_TARGET_OFF; yMin = -2.493; yMax = 2.493; isScoped = true;
+            } else if (currentMode === 3) {
+                targetOffset = 0x108; yMin = -6.5; yMax = 6.5; isScoped = true;
+            } else {
+                let checkValue = this.readFloat(ptrs.base + 0x228);
+                if (checkValue < 0.7 || checkValue > 1.67) canWrite = false;
+                targetOffset = PTR_OFFSETS.HIP_TARGET_OFF; yMin = -2.5; yMax = 2.5;
+            }
+            if (!canWrite) return false;
+            let finalX = Math.max(yMin, Math.min(yMax, dirX));
+            let finalY = Math.max(yMin, Math.min(yMax, dirY));
+            let finalZ = Math.max(yMin, Math.min(yMax, dirZ));
+            if (shouldWriteTarget) {
+                h5gg.setValue(ptrs.base + targetOffset, finalX, "F32");
+                h5gg.setValue(ptrs.base + targetOffset + 4, finalY, "F32");
+                h5gg.setValue(ptrs.base + targetOffset + 8, finalZ, "F32");
+                this.lastWriteTime = now;
+            }
+            if (!isScoped) {
+                let realY = this.readFloat(ptrs.base + 0x228);
+                if (realY >= 1.64 && realY <= 1.66) {
+                    let cRX = this.readFloat(ptrs.base + 0x224), cRZ = this.readFloat(ptrs.base + 0x22C);
+                    let cVX = this.readFloat(ptrs.base + 0x230), cVZ = this.readFloat(ptrs.base + 0x238);
+                    let sX = 0.168, sZ = 0.168;
+                    if (Math.abs(cVX) > 0.1) sX = Math.abs(cRZ) / Math.abs(cVX);
+                    if (Math.abs(cVZ) > 0.1) sZ = Math.abs(cRX) / Math.abs(cVZ);
+                    sX = Math.max(0.08, Math.min(0.25, sX)); sZ = Math.max(0.08, Math.min(0.25, sZ));
+                    let tRX = -finalZ * sZ, tRZ = finalX * sX;
+                    let dX = tRX - cRX, dZ = tRZ - cRZ, mc = 0.05;
+                    if (Math.abs(dX) > mc) dX = Math.sign(dX) * mc;
+                    if (Math.abs(dZ) > mc) dZ = Math.sign(dZ) * mc;
+                    h5gg.setValue(ptrs.base + 0x224, cRX + dX, "F32");
+                    h5gg.setValue(ptrs.base + 0x22C, cRZ + dZ, "F32");
+                }
+                if (realY >= 1.29 && realY <= 1.31) {
+                    let cRX = this.readFloat(ptrs.base + 0x224), cRZ = this.readFloat(ptrs.base + 0x22C);
+                    let cVX = this.readFloat(ptrs.base + 0x230), cVZ = this.readFloat(ptrs.base + 0x238);
+                    let scale = 0.2;
+                    let tRX = -finalZ * scale, tRZ = finalX * scale;
+                    let oX = cRX - (-cVZ * scale), oZ = cRZ - (cVX * scale);
+                    tRX += oX; tRZ += oZ;
+                    let dX = tRX - cRX, dZ = tRZ - cRZ, mc = 0.05;
+                    if (Math.abs(dX) > mc) dX = Math.sign(dX) * mc;
+                    if (Math.abs(dZ) > mc) dZ = Math.sign(dZ) * mc;
+                    h5gg.setValue(ptrs.base + 0x224, cRX + dX, "F32");
+                    h5gg.setValue(ptrs.base + 0x22C, cRZ + dZ, "F32");
+                }
+            }
+            return true;
+        } catch(e) { return false; }
+    }
+
+    estimateVelocity(addr, cx, cy, cz) { let last = this.lastPositions.get(addr); let vx = 0, vy = 0, vz = 0; if (last) { let dt = (Date.now() - last.time) / 1000; if (dt > 0 && dt < 0.1) { vx = (cx - last.x) / dt; vy = (cy - last.y) / dt; vz = (cz - last.z) / dt; } } this.lastPositions.set(addr, { x: cx, y: cy, z: cz, time: Date.now() }); return { vx, vy, vz }; }
+isFiring() {
+    try {
+        if (!this.savedAddresses.isSaved || this.savedAddresses.localPlayer === 0) return false;
+        const fireValue = this.readInt(this.savedAddresses.localPlayer + PTR_OFFSETS.LOCAL_FIRE_OFF);
+        return (fireValue !== 0);
+    } catch (e) { return false; }
+}
+    rescanAddresses() { this.savedAddresses.isSaved = false; this.lastPositions.clear(); this.cachedStepB = undefined; for (const e of this.EntityArray) e.cachedBonePtrs = null; const r = this.saveAddresses(); if (r) { try { this.cachedStepA = this.readPointer(this.baseAddr + PTR_OFFSETS.LOCAL_PLAYER_PTR); if (this.cachedStepA !== 0 && this.cachedStepA >= this.baseAddr) this.cachedStepB = this.readPointer(this.cachedStepA + PTR_OFFSETS.WEAPON_STEP2_OFF); } catch(e) {} this.lastEntityListUpdate = 0; this.updateEntityList(); } return r; }
+
+    enableAimbot() { this.aimbotEnabled = true; this._smoothDir = null; }
+    disableAimbot() { this.aimbotEnabled = false; this._smoothDir = null; }
+    setAimbotFov(v) { this.aimbotFov = v; } setFireCheckEnabled(v) { this.fireCheckEnabled = v; }
+    setSmoothness(v) { this.aimSmoothness = v; } setAimSpeed(v) { this.aimSpeed = v; }
+    setMinDistance(v) { this.minAimDistance = v; } setMaxDistance(v) { this.maxAimDistance = v; }
+    setPredictStrength(v) { this.predictStrength = v; } setBulletSpeed(v) { this.bulletSpeed = v; }
+    setShowSkeleton(v) { this.showSkeleton = v; } setShowBox(v) { this.showBox = v; }
+    setShowRay(v) { this.showRay = v; } setAimPart(v) { this.aimPart = v; }
+
+    // drawEntity 回傳螢幕座標
+    drawEntity(D, entity, localPos, matrix) {
+        if (!entity || !entity.address) return null;
+        try {
+            const bDead = this.readInt(entity.address + 0xA0);
+            const andVal = this.readInt(entity.address + 0xA8);
+            if (bDead !== 1065353216 || andVal === -1 || andVal === 4294967295) { const idx = this.EntityArray.indexOf(entity); if (idx !== -1) this.EntityArray.splice(idx, 1); return null; }
+            const x = this.readFloat(entity.address + 0x54), y = this.readFloat(entity.address + 0x58), z = this.readFloat(entity.address + 0x5C);
+            if (x === 0 && y === 0 && z === 0 || Math.abs(x) > 500000) { const idx = this.EntityArray.indexOf(entity); if (idx !== -1) this.EntityArray.splice(idx, 1); return null; }
+            const topPos = new Vec3(x, y + 1.65, z);
+            const distance = Distance3D(localPos, topPos);
+            if (distance < 0 || distance > 600) return null;
+            let view = matrix[7] * topPos.x + matrix[8] * topPos.y + matrix[9] * topPos.z + matrix[10];
+            if (view <= 0.01) return null;
+            let iv = 1.0 / view;
+            let txxx = matrix[0] * topPos.x + matrix[1] * topPos.z + matrix[2];
+            let tyyy = matrix[3] * topPos.x + matrix[4] * topPos.y + matrix[5] * topPos.z + matrix[6];
+            txxx *= iv; tyyy *= iv;
+            const reT = new Vec2((this.sWidth / 2) + txxx * (this.sWidth / 2), (this.sHeight / 2) - tyyy * (this.sHeight / 2));
+            if (this.showRay) D.Line(this.sWidth / 2, 0, reT.x, reT.y, "#00FF00", 0.8);
+            if (reT.x < 0 || reT.y < 0 || reT.x > this.sWidth || reT.y > this.sHeight) return null;
+            view = matrix[7] * x + matrix[8] * y + matrix[9] * z + matrix[10];
+            if (view <= 0.01) return null;
+            iv = 1.0 / view;
+            let bxxx = matrix[0] * x + matrix[1] * z + matrix[2];
+            let byyy = matrix[3] * x + matrix[4] * y + matrix[5] * z + matrix[6];
+            bxxx *= iv; byyy *= iv;
+            const reB = new Vec2((this.sWidth / 2) + bxxx * (this.sWidth / 2), (this.sHeight / 2) - byyy * (this.sHeight / 2));
+            const reH = Math.abs(reB.y - reT.y), reW = reH / 1.8;
+            const boxX = reT.x - reW / 2, boxY = reT.y;
+            if (this.showBox) { switch(this.boxStyle) { case "corner": drawCornerESP(D, boxX, boxY, reW, reH, '#00ff00', 0.2, 0.8); break; case "rectangle": D.Rect(boxX, boxY, reW, reH, '#00ff00', false, 0.8); break; case "rounded": drawRoundedBox(D, boxX, boxY, reW, reH, '#00ff00', 0.8); break; case "filled": D.Rect(boxX, boxY, reW, reH, '#00ff0020', true, 0.8); D.Rect(boxX, boxY, reW, reH, '#00ff00', false, 0.8); break; } }
+            if ((this.showSkeleton || this.aimbotEnabled) && entity.level4) {
+                const rotAddr = entity.address + 0x30;
+                const rot0 = this.readFloat(rotAddr), rot2 = this.readFloat(rotAddr + 8), rot6 = this.readFloat(rotAddr + 24), rot8 = this.readFloat(rotAddr + 32);
+                if (!entity.cachedBonePtrs) { const p1 = this.readPointer(entity.level4 + 0xA8); if (!this.isNull(p1)) entity.cachedBonePtrs = this.readPointer(p1 + 0x90); }
+                const ptr2 = entity.cachedBonePtrs;
+                if (ptr2) {
+                    if (this.showSkeleton) {
+                        const bs = {}; const bi = [1, 5, 8, 9, 10, 13, 14, 15, 17, 18, 19, 21, 22, 23];
+                        for (const idx of bi) { const ba = this.readPointer(ptr2 + 0x10 + idx * 0x8); if (this.isNull(ba)) continue; const lx = this.readFloat(ba + 0x54), ly = this.readFloat(ba + 0x58), lz = this.readFloat(ba + 0x5C); if (lx === 0 && ly === 0 && lz === 0) continue; let bwx = x + (lx * rot0 + lz * rot6), bwy = y + ly, bwz = z + (lx * rot2 + lz * rot8); let vv = matrix[7] * bwx + matrix[8] * bwy + matrix[9] * bwz + matrix[10]; if (vv <= 0.01) continue; let ivi = 1.0 / vv; let b2x = matrix[0] * bwx + matrix[1] * bwz + matrix[2]; let b2y = matrix[3] * bwx + matrix[4] * bwy + matrix[5] * bwz + matrix[6]; b2x *= ivi; b2y *= ivi; const sp = new Vec2((this.sWidth / 2) + b2x * (this.sWidth / 2), (this.sHeight / 2) - b2y * (this.sHeight / 2)); if (sp.x > 0 && sp.x < this.sWidth && sp.y > 0 && sp.y < this.sHeight) bs[idx] = sp; }
+                        const lines = [[19,18],[18,17],[17,1],[23,22],[22,21],[21,1],[1,5],[5,8],[8,9],[9,10],[5,13],[13,14],[14,15]];
+                        for (const [f, t] of lines) { if (bs[f] && bs[t]) D.Line(bs[f].x, bs[f].y, bs[t].x, bs[t].y, "#00FF00", 0.8); }
+                    }
+                    if (this.aimbotEnabled) {
+                        const hPtr = this.readPointer(ptr2 + 0x40); if (!this.isNull(hPtr)) { const lx = this.readFloat(hPtr + 0x54), ly = this.readFloat(hPtr + 0x58), lz = this.readFloat(hPtr + 0x5C); if (!(lx === 0 && ly === 0 && lz === 0)) entity.cachedHeadPos = new Vec3(x + (lx * rot0 + lz * rot6), y + ly + 0.05, z + (lx * rot2 + lz * rot8)); }
+                        const cPt = this.readPointer(ptr2 + 0x38); if (!this.isNull(cPt)) { const lx = this.readFloat(cPt + 0x54), ly = this.readFloat(cPt + 0x58), lz = this.readFloat(cPt + 0x5C); if (!(lx === 0 && ly === 0 && lz === 0)) entity.cachedChestPos = new Vec3(x + (lx * rot0 + lz * rot6), y + ly - 0.05, z + (lx * rot2 + lz * rot8)); }
+                    }
+                }
+            }
+            // 回傳螢幕座標
+            let aimPos;
+            if (this.aimPart === "head" && entity.cachedHeadPos) aimPos = entity.cachedHeadPos;
+            else if (this.aimPart === "chest" && entity.cachedChestPos) aimPos = entity.cachedChestPos;
+            else aimPos = new Vec3(x, y + 0.1, z);
+            let av = matrix[7] * aimPos.x + matrix[8] * aimPos.y + matrix[9] * aimPos.z + matrix[10];
+            if (av <= 0.01) return null;
+            let aiv = 1.0 / av;
+            let ax = matrix[0] * aimPos.x + matrix[1] * aimPos.z + matrix[2];
+            let ay = matrix[3] * aimPos.x + matrix[4] * aimPos.y + matrix[5] * aimPos.z + matrix[6];
+            ax *= aiv; ay *= aiv;
+            const asp = new Vec2((this.sWidth / 2) + ax * (this.sWidth / 2), (this.sHeight / 2) - ay * (this.sHeight / 2));
+            return { entity, screenX: asp.x, screenY: asp.y, aimPos, distance3D: distance };
+        } catch(e) { return null; }
+    }
+
+    // 新的選中邏輯
+    selectBestTarget(drawList) {
+        if (!this.aimbotEnabled || !drawList.length) return null;
+        let bestTarget = null, bestDist = Infinity;
+        const maxFov = this.aimbotFov * this.iosScale;
+        const cx = this.sWidth / 2, cy = this.sHeight / 2;
+        for (const info of drawList) {
+            if (!info) continue;
+            if (info.screenX < 0 || info.screenX > this.sWidth || info.screenY < 0 || info.screenY > this.sHeight) continue;
+            if (info.distance3D < this.minAimDistance || info.distance3D > this.maxAimDistance) continue;
+            const dx = info.screenX - cx, dy = info.screenY - cy;
+            const sd = Math.sqrt(dx * dx + dy * dy);
+            if (sd <= maxFov && sd < bestDist) { bestDist = sd; bestTarget = info; }
+        }
+        if (bestTarget && this.currentSelectedTarget && bestTarget.entity !== this.currentSelectedTarget) this._smoothDir = null;
+        this.currentSelectedTarget = bestTarget ? bestTarget.entity : null;
+        return bestTarget;
+    }
+
+performAimbot(target) {
+    if (!target || !this.aimbotEnabled) return;
+    
+    let ptrs = this.getViewPointers();
+    if (!ptrs) return;
+    
+    const localPlayer = this.getLocalPlayerData();
+    let isScoped = (ptrs.scopeMode === 2 || ptrs.scopeMode === 4);
+    
+    // 腰射（非開鏡）：一定要開火
+    if (!isScoped && !this.isFiring()) return;
+    // 開鏡：fireCheckEnabled=true 要開火，false 直接自瞄
+    if (isScoped && this.fireCheckEnabled && !this.isFiring()) return;
+    
+    let aimPos = target.aimPos;
+    let distance = target.distance3D;
+    
+    if (this.predictStrength > 0) {
+        const x = this.readFloat(target.entity.address + 0x54);
+        const y = this.readFloat(target.entity.address + 0x58);
+        const z = this.readFloat(target.entity.address + 0x5C);
+        let velocity = this.estimateVelocity(target.entity.address, x, y, z);
+        let speed = Math.hypot(velocity.vx, velocity.vz);
+        if (speed > 3.0) {
+            let travelTime = distance / this.bulletSpeed;
+            travelTime = Math.min(travelTime, 0.3);
+            let factor = travelTime * this.predictStrength;
+            aimPos = new Vec3(aimPos.x + velocity.vx * factor, aimPos.y + velocity.vy * factor, aimPos.z + velocity.vz * factor);
+        }
+    }
+    
+    let targetDir = calcDirectionVector(localPlayer.position, aimPos, isScoped);
+    
+    let newDir;
+    if (this.aimSmoothness <= 0.01) {
+        newDir = targetDir;
+        this._smoothDir = null;
+    } else {
+        if (!this._smoothDir) this._smoothDir = new Vec3(targetDir.x, targetDir.y, targetDir.z);
+        let t = 1 - this.aimSmoothness;
+        this._smoothDir = new Vec3(
+            this._smoothDir.x + (targetDir.x - this._smoothDir.x) * t,
+            this._smoothDir.y + (targetDir.y - this._smoothDir.y) * t,
+            this._smoothDir.z + (targetDir.z - this._smoothDir.z) * t
+        );
+        newDir = this._smoothDir;
+    }
+    
+    if (isScoped) {
+        newDir.x = Math.max(-2.5, Math.min(2.5, newDir.x));
+        newDir.y = Math.max(-2.493, Math.min(2.493, newDir.y));
+        newDir.z = Math.max(-2.5, Math.min(2.5, newDir.z));
+    } else {
+        newDir.x = Math.max(-2.5, Math.min(2.5, newDir.x));
+        newDir.y = Math.max(-2.5, Math.min(2.5, newDir.y));
+        newDir.z = Math.max(-2.5, Math.min(2.5, newDir.z));
+    }
+    
+    this.writeDirectionSmart(newDir.x, newDir.y, newDir.z, ptrs);
+}
+
+    render() {
+        if (!this.isRendering) return;
+        const now = performance.now();
+        if (now - this.lastEntityListUpdate >= this.entityListUpdateInterval) { this.lastEntityListUpdate = now; this.updateEntityList(); }
+        if (!this.savedAddresses.isSaved) { requestAnimationFrame(() => this.render()); return; }
+        this.updateMatrix();
+        const matrix = this._matrix;
+        const localPlayer = this.getLocalPlayerData();
+        let ptrs = this.getViewPointers();
+        const D = new Draw(this.ESPCanvas, this.sWidth, this.sHeight, this.iosScale);
+        D.Clear();
+        if (this.aimbotEnabled) D.Circle(this.sWidth / 2, this.sHeight / 2, this.aimbotFov, "#00ff00", false, 0.8);
+        const drawList = [];
+        for (const entity of this.EntityArray) {
+            const info = this.drawEntity(D, entity, localPlayer.position, matrix);
+            if (info) drawList.push(info);
+        }
+        if (this.aimbotEnabled) {
+            const aimTarget = this.selectBestTarget(drawList);
+            if (aimTarget) this.performAimbot(aimTarget);
+            // info
+            const cx = this.sWidth / 2, ty = this.sHeight * 0.05;
+            D.Text(this.EntityArray.length.toString(), cx + 3, ty + 7, 28, "rgba(0,0,0,0.6)", true);
+            D.Text(this.EntityArray.length.toString(), cx, ty + 5, 28, "#FF4444", true);
+            if (ptrs && ptrs.base) D.Text("ScopeMode: " + ptrs.scopeMode, cx, ty + 100, 9, "#FFFF00", true);
+            if (aimTarget) { D.Text("目标 " + aimTarget.distance3D.toFixed(1) + "m", cx, ty + 250, 12, "#FFFF00", true); D.Line(this.sWidth / 2, this.sHeight / 2, aimTarget.screenX, aimTarget.screenY, "#00FF00", 0.7); }
+        }
+        requestAnimationFrame(() => this.render());
+    }
+
+    startRendering() { this.isRendering = true; this.render(); }
+    stopRendering() { this.isRendering = false; if (this.ESPCanvas) { const D = new Draw(this.ESPCanvas, this.sWidth, this.sHeight, this.iosScale); D.Clear(); } }
+    setBoxStyle(s) { this.boxStyle = s; } setFPSLimit(f) { this.fpsLimit = f; } setShowRay(e) { this.showRay = e; }
+    isNull(a) { return !a || a === 0 || a < this.baseAddr || a > 0x300000000; }
+    readPointer(a) { if (this.isNull(a)) return 0; try { return Number(h5gg.getValue(a, "U64")); } catch(e) { return 0; } }
+    readInt(a) { try { return Number(h5gg.getValue(a, "I32")); } catch(e) { return 0; } }
+    readFloat(a) { try { return Number(h5gg.getValue(a, "F32")); } catch(e) { return 0; } }
+    readFloat64(a) { try { return Number(h5gg.getValue(a, "F64")); } catch(e) { return 0; } }
+}
+
+class MemoryPatchManager {
+    constructor(baseAddr) { this.baseAddr = baseAddr; this.targetFinalAddr = 0; this.lastReadValue = null; }
+    resolvePointerChain() { try { if (!this.baseAddr) return 0; let p1 = this.readPtr(this.baseAddr + PTR_OFFSETS.SPECIAL_PTR1); if (this.isBadPtr(p1)) return 0; let p2 = this.readPtr(p1 + PTR_OFFSETS.SPECIAL_PTR2_OFF); if (this.isBadPtr(p2)) return 0; let p3 = this.readPtr(p2 + PTR_OFFSETS.SPECIAL_PTR3_OFF); if (this.isBadPtr(p3)) return 0; return p3 + PTR_OFFSETS.SPECIAL_TARGET_OFF; } catch(e) { return 0; } }
+    readPtr(a) { try { return Number(h5gg.getValue(a, "U64")); } catch(e) { return 0; } }
+    isBadPtr(a) { return !a || a === 0 || a < 0x100000000 || a > 0x300000000; }
+    readCurrentValue() { const a = this.resolvePointerChain(); if (!a) return null; try { let v = h5gg.getValue(a, "F64"); this.targetFinalAddr = a; this.lastReadValue = Number(v); return this.lastReadValue; } catch(e) { return null; } }
+    writeValue(v) { if (!this.targetFinalAddr) this.resolvePointerChain(); if (!this.targetFinalAddr) return false; try { h5gg.setValue(this.targetFinalAddr, v, "F64"); this.lastReadValue = v; return true; } catch(e) { return false; } }
+}
+
+let espCore = null, memManager = null;
+let app = new Vue({
+    el: "#app",
+    data() { return { ifshow: true, tabValue: "status", espStatus: false, addressesSaved: false, playerArrayBase: 0, localPlayerAddr: 0, viewMatrixAddr: 0, aimbotEnabled: false, fireCheckEnabled: true, aimbotFov: 100, aimSmoothness: 0, aimSpeed: 0.5, predictStrength: 0.5, bulletSpeed: 800, minAimDist: "3.5", maxAimDist: "600", boxStyle: "corner", fpsLimit: 60, liveModeEnabled: false, currentMemValue: null, showScanResult: false, scanResultText: "", aimPart: "center", showBox: true, showSkeleton: false, isResizing: false, startWidth: 400, startHeight: 520, startX: 0, startY: 0, initialLeft: 0, initialTop: 0, showRay: false }; },
+    mounted() {
+        this.setRect(400, 380); setWindowDrag(0, 0, 0, 0);
+        var layout = function() { if(window.lastorientation==window.orientation) return; window.lastorientation=window.orientation; if(Math.abs(window.orientation)==90) setWindowRect(0,0,window.screen.height,window.screen.width); else setWindowRect(0,0,window.screen.width,window.screen.height); };
+        layout(); window.addEventListener("orientationchange", layout, false);
+        setButtonAction(function () { var m = document.querySelector("#app"); if (m.style.display == 'none') { m.style.display = 'block'; setWindowTouch(true); } else { m.style.display = 'none'; setWindowTouch(false); } });
+        CanvasRenderingContext2D.prototype.roundRect = function(x,y,w,h,r) { if (w < 2 * r) r = w / 2; if (h < 2 * r) r = h / 2; this.moveTo(x+r, y); this.lineTo(x+w-r, y); this.quadraticCurveTo(x+w, y, x+w, y+r); this.lineTo(x+w, y+h-r); this.quadraticCurveTo(x+w, y+h, x+w-r, y+h); this.lineTo(x+r, y+h); this.quadraticCurveTo(x, y+h, x, y+h-r); this.lineTo(x, y+r); this.quadraticCurveTo(x, y, x+r, y); return this; };
+        setTimeout(() => { if (typeof h5gg !== 'undefined' && h5gg.getRangesList) { let base = 0; try { let r = h5gg.getRangesList('Game'); if(r && r[0]) base = Number(r[0].start); } catch(e) {} if(base) { memManager = new MemoryPatchManager(base); this.refreshMemValue(); } } }, 500);
+    },
+    methods: {
+        setRect(w, h, x, y) { var m = this.$refs.menuMain; m.style.width = w + "px"; m.style.height = h + "px"; if (x === undefined || x === -1) m.style.left = "calc(50% - " + (w / 2) + "px)"; if (y === undefined || y === -1) m.style.top = "calc(50% - " + (h / 2) + "px)"; },
+        titleTouchStart(e) { this.touchStartX = parseInt(e.touches[0].clientX); this.touchStartY = parseInt(e.touches[0].clientY); this.menuLastX = this.$refs.menuMain.offsetLeft; this.menuLastY = this.$refs.menuMain.offsetTop; },
+        toggleRay(e) { if (espCore) espCore.setShowRay(e); },
+        titleTouchMove(e) { e.preventDefault(); var dx = e.touches[0].clientX - this.touchStartX, dy = e.touches[0].clientY - this.touchStartY, m = this.$refs.menuMain; m.style.left = this.menuLastX + dx + "px"; m.style.top = this.menuLastY + dy + "px"; },
+        resizeTouchStart(e) { if (!this.ifshow) return; e.preventDefault(); e.stopPropagation(); this.isResizing = true; const t = e.touches[0]; this.startX = Math.round(t.clientX); this.startY = Math.round(t.clientY); var m = this.$refs.menuMain; this.startWidth = Math.round(m.offsetWidth); this.startHeight = Math.round(m.offsetHeight); this.initialLeft = Math.round(m.offsetLeft); this.initialTop = Math.round(m.offsetTop); m.classList.add('resizing'); },
+        resizeTouchMove(e) { if (!this.ifshow || !this.isResizing) return; e.preventDefault(); e.stopPropagation(); const t = e.touches[0]; let nw = Math.max(300, this.startWidth + Math.round(t.clientX) - this.startX), nh = Math.max(400, this.startHeight + Math.round(t.clientY) - this.startY); var m = this.$refs.menuMain; m.style.width = nw + "px"; m.style.height = nh + "px"; document.getElementById('scaleIndicator').textContent = Math.round((nw / 400) * 100) + "%"; },
+        resizeTouchEnd() { if (this.isResizing) { this.isResizing = false; this.$refs.menuMain.classList.remove('resizing'); } },
+        changeTab(v) { this.tabValue = v; if(v==='memory') this.refreshMemValue(); },
+        closeimgui() { document.querySelector("#app").style.display = 'none'; },
+        startESP() { if (!espCore) { espCore = new ESPCore(); this.espStatus = true; setTimeout(() => { this.addressesSaved = espCore.savedAddresses.isSaved; this.updateAddressDisplay(); }, 200); vant.Toast.success("ESP已启动"); } else { espCore.startRendering(); this.espStatus = true; vant.Toast("ESP已恢复运行"); } },
+        stopESP() { if (espCore) { espCore.stopRendering(); this.espStatus = false; vant.Toast("ESP已停止"); } },
+        setAimPart(p) { this.aimPart = p; if (espCore) espCore.setAimPart(p); },
+        toggleBox(e) { if (espCore) espCore.setShowBox(e); },
+        toggleSkeleton(e) { if (espCore) espCore.setShowSkeleton(e); },
+        rescanAddresses() { if (espCore) { const s = espCore.rescanAddresses(); if (s) { this.addressesSaved = true; this.updateAddressDisplay(); vant.Toast.success("地址重新扫描成功！"); } else vant.Toast.fail("地址重新扫描失败！"); } else vant.Toast("请先启动 ESP 系统！"); },
+        updateAddressDisplay() { if (!espCore || !espCore.savedAddresses.isSaved) return; const a = espCore.savedAddresses; this.playerArrayBase = a.playerArrayBase; this.localPlayerAddr = a.localPlayer; this.viewMatrixAddr = a.viewMatrix; },
+        toggleAimbot(e) { if (espCore) e ? espCore.enableAimbot() : espCore.disableAimbot(); },
+        setFireCheckEnabled(e) { if (espCore) espCore.setFireCheckEnabled(e); },
+        setBoxStyle(s) { if (espCore) espCore.setBoxStyle(s); this.boxStyle = s; },
+        setFPSLimit(f) { if (espCore) espCore.setFPSLimit(f); this.fpsLimit = f; },
+        updateFov() { if (espCore) espCore.setAimbotFov(parseInt(this.aimbotFov)); },
+        updateSmooth() { if (espCore) espCore.setSmoothness(parseFloat(this.aimSmoothness)); },
+        updateAimSpeed() { if (espCore) espCore.setAimSpeed(parseFloat(this.aimSpeed)); },
+        updatePredictStrength() { if (espCore) espCore.setPredictStrength(parseFloat(this.predictStrength)); },
+        updateBulletSpeed() { if (espCore) espCore.setBulletSpeed(parseInt(this.bulletSpeed)); },
+        updateMinDist() { if (espCore) espCore.setMinDistance(parseFloat(this.minAimDist)); },
+        updateMaxDist() { if (espCore) espCore.setMaxDistance(parseFloat(this.maxAimDist)); },
+        toggleLiveMode(e) { if (e) { var g = h5gg.loadPlugin("ayHide", "h5gg_hideview.dylib"); setButtonImage("https://gchat.qpic.cn/gchatpic_new/0/0-0-AEADC8B12D4F90C67B3FE70B4F5F881B/0"); g.changeHidden(1); var t = setWindowTouch; setWindowTouch = function(e) { g.changeTouch(e ? 1 : 0); t(e); }; vant.Toast.success("直播模式已开启"); } else { var g = h5gg.loadPlugin("ayHide", "h5gg_hideview.dylib"); setButtonImage("https://cdn.phototourl.com/free/2026-05-16-4d52054c-b493-441f-9eb6-a166da97c9e1.jpg"); g.changeHidden(0); var t = setWindowTouch; setWindowTouch = function(e) { g.changeTouch(e ? 1 : 0); t(e); }; vant.Toast("直播模式已关闭"); } },
+        refreshMemValue() { if (!memManager) { if (espCore && espCore.baseAddr) memManager = new MemoryPatchManager(espCore.baseAddr); else return; } let v = memManager.readCurrentValue(); this.currentMemValue = (v !== null && !isNaN(v)) ? v : null; },
+        manualReadMemory() { this.refreshMemValue(); if(this.currentMemValue !== null) vant.Toast.success("当前值: " + this.currentMemValue.toFixed(6)); else vant.Toast.fail("无法读取内存"); },
+        manualWriteMemory(tv) { if (!memManager) { vant.Toast.fail("内存管理未初始化"); return; } if(memManager.writeValue(tv)) { this.currentMemValue = tv; vant.Toast.success("已设置为 " + tv); } else vant.Toast.fail("写入失败，检查指针"); }
+    }
+});
+</script>
+<script>
+function refreshProcList() { var procs = h5gg.getProcList(), name; for (var i = 0; i < procs.length; i++) { if (procs[i].name == "Game") { h5gg.setTargetProc(procs[i].pid); name = procs[i].name; h5gg.clearResults(); } } if (name != "Game") { alert('检测到你未开启荒野'); refreshProcList(); } }
+refreshProcList();
+</script>
+</body>
+</html>
